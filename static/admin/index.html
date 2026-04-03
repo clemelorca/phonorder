@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phonorder · Admin</title>
+<style>
+:root{--bg:#f7f6f2;--sf:#fff;--sf2:#f3f0ec;--bd:#d4d1ca;--tx:#28251d;--mu:#7a7974;
+--pr:#01696f;--ph:#0c4e54;--pl:#cedcd8;--sg:#437a22;--sl:#d4dfcc;
+--dr:#c0392b;--dl:#fce8e6;--wr:#da7101;--wl:#fef3e2;
+--r:.75rem;--rs:.375rem;--fn:"DM Sans",system-ui,sans-serif;}
+[data-theme=dark]{--bg:#171614;--sf:#1c1b19;--sf2:#252422;--bd:#393836;--tx:#cdccca;--mu:#797876;
+--pr:#4f98a3;--ph:#227f8b;--pl:#313b3b;--sg:#6daa45;--sl:#3a4435;--dr:#e57373;--dl:#4a2020;--wr:#fdab43;--wl:#4a3a20;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--fn);font-size:14px;color:var(--tx);background:var(--bg);}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;font:inherit;border:none;background:none;color:inherit;}
+input,select,textarea{font:inherit;color:inherit;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:.5rem .75rem;width:100%;outline:none;}
+input:focus,select:focus{border-color:var(--pr);box-shadow:0 0 0 3px var(--pl);}
+label{display:block;font-size:11px;font-weight:700;color:var(--mu);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;}
+#app{display:flex;height:100vh;overflow:hidden;}
+#sb{width:220px;min-width:220px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;}
+.sbl{padding:1rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--bd);}
+.sbl span{font-size:15px;font-weight:700;}.sbl small{font-size:11px;color:var(--mu);display:block;}
+nav{flex:1;padding:.5rem 0;overflow-y:auto;}
+.ni{display:flex;align-items:center;gap:.75rem;padding:.55rem 1rem;font-size:13px;color:var(--mu);cursor:pointer;}
+.ni:hover{background:var(--sf2);color:var(--tx);}.ni.active{background:var(--pl);color:var(--pr);font-weight:700;}
+.sbb{padding:.75rem;border-top:1px solid var(--bd);}
+.uc{display:flex;align-items:center;gap:.6rem;padding:.5rem;border-radius:var(--rs);background:var(--sf2);}
+.av{width:28px;height:28px;border-radius:50%;background:var(--pr);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+#mn{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#tb{height:56px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:.75rem;padding:0 1.25rem;background:var(--sf);}
+#tb h1{font-size:15px;font-weight:700;flex:1;}
+#ct{flex:1;overflow-y:auto;padding:1.5rem;}
+.page{display:none;}.page.active{display:block;}
+.g2{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:1rem;}
+.g4{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(180px,100%),1fr));gap:1rem;}
+.card{background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);box-shadow:0 2px 8px rgba(0,0,0,.07);padding:1.25rem;}
+.ct2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);margin-bottom:.75rem;}
+.kpi{font-size:2rem;font-weight:800;line-height:1;}
+.tw{overflow-x:auto;border-radius:var(--r);border:1px solid var(--bd);background:var(--sf);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:var(--sf2);}
+th{padding:.65rem 1rem;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);border-bottom:1px solid var(--bd);}
+td{padding:.7rem 1rem;border-bottom:1px solid var(--bd);vertical-align:middle;}
+tr:last-child td{border:none;}tr:hover td{background:var(--sf2);}
+.badge{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:9999px;font-size:11px;font-weight:700;text-transform:uppercase;}
+.bg{background:var(--sl);color:var(--sg);}.br{background:var(--dl);color:var(--dr);}
+.by{background:var(--wl);color:var(--wr);}.bb{background:var(--pl);color:var(--pr);}.bgr{background:var(--sf2);color:var(--mu);}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:var(--rs);font-size:13px;font-weight:600;}
+.bp{background:var(--pr);color:#fff;}.bp:hover{background:var(--ph);}
+.bg2{border:1px solid var(--bd);color:var(--mu);background:var(--sf);}.bg2:hover{background:var(--sf2);}
+.bd2{background:var(--dl);color:var(--dr);}.bd2:hover{background:var(--dr);color:#fff;}
+.bsm{padding:.3rem .7rem;font-size:12px;}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.mo.open{display:flex;}
+.modal{background:var(--sf);border-radius:var(--r);box-shadow:0 20px 60px rgba(0,0,0,.2);width:min(480px,95vw);max-height:90vh;overflow-y:auto;}
+.mh{padding:1.25rem 1.5rem;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;}
+.mh h2{font-size:15px;font-weight:700;}.mb{padding:1.5rem;}.mf{padding:1rem 1.5rem;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:.75rem;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}.fg{margin-bottom:1rem;}
+#tc{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:.5rem;}
+.toast{background:var(--tx);color:var(--bg);padding:.75rem 1.25rem;border-radius:var(--rs);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;max-width:320px;}
+.toast.show{opacity:1;transform:none;}.toast.ok{background:var(--sg);}.toast.err{background:var(--dr);}
+#ls{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500;}
+.lb{background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);box-shadow:0 2px 8px rgba(0,0,0,.07);padding:2.5rem;width:min(380px,92vw);}
+.ll{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;justify-content:center;}
+.ll span{font-size:20px;font-weight:800;}
+</style></head><body>
+<div id="ls">
+  <div class="lb">
+    <div class="ll">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="7" y="1" width="14" height="26" rx="3" fill="#01696f"/><rect x="10" y="4" width="8" height="13" rx="1.5" fill="white" opacity=".9"/><circle cx="14" cy="24" r="1.5" fill="white" opacity=".7"/></svg>
+      <span>Phonorder</span>
+    </div>
+    <div id="le" style="background:var(--dl);color:var(--dr);border-radius:var(--rs);padding:.6rem .9rem;font-size:12px;margin-bottom:1rem;display:none"></div>
+    <div class="fg"><label>Email</label><input type="email" id="em" placeholder="tu@email.com"></div>
+    <div class="fg"><label>Contrasena</label><input type="password" id="pw" placeholder="••••••••"></div>
+    <button class="btn bp" style="width:100%;justify-content:center;margin-top:.5rem" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
+<div id="app" style="display:none">
+  <div id="sb">
+    <div class="sbl">
+      <svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect x="7" y="1" width="14" height="26" rx="3" fill="var(--pr)"/><rect x="10" y="4" width="8" height="13" rx="1.5" fill="white" opacity=".9"/><circle cx="14" cy="24" r="1.5" fill="white" opacity=".7"/></svg>
+      <div><span>Phonorder</span><small id="rl">Admin</small></div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="sbb">
+      <div class="uc"><div class="av" id="av">?</div><div><div style="font-size:12px;font-weight:700" id="un">-</div><div style="font-size:10px;color:var(--mu)" id="ur">-</div></div></div>
+      <button class="btn bg2 bsm" style="width:100%;margin-top:.5rem;justify-content:center" onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div id="mn">
+    <div id="tb"><h1 id="pt">Dashboard</h1><button class="btn bg2 bsm" onclick="toggleTheme()">Tema</button></div>
+    <div id="ct">
+      <div class="page" id="page-sa">
+        <div class="g4" id="sa-kpis" style="margin-bottom:1.5rem"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem"><h3 style="font-size:13px;font-weight:700;color:var(--mu);text-transform:uppercase">Admins</h3><button class="btn bp bsm" onclick="openM('ma')">+ Nuevo admin</button></div>
+        <div class="tw"><table><thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="atb"></tbody></table></div>
+      </div>
+      <div class="page" id="page-sa-stores"><div class="tw"><table><thead><tr><th>Tienda</th><th>Owner ID</th><th>Plan</th><th>Estado</th></tr></thead><tbody id="sstb"></tbody></table></div></div>
+      <div class="page" id="page-dash">
+        <div class="g4" id="dkpis" style="margin-bottom:1.5rem"></div>
+        <div class="g2"><div class="card"><div class="ct2">Pedidos activos</div><div id="aol">-</div></div><div class="card"><div class="ct2">Top productos</div><div id="tpl">-</div></div></div>
+      </div>
+      <div class="page" id="page-stores">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h2 style="font-size:15px;font-weight:700">Mis tiendas</h2><button class="btn bp bsm" onclick="openM('ms')">+ Nueva tienda</button></div>
+        <div class="g2" id="sg"></div>
+      </div>
+      <div class="page" id="page-products">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><h2 style="font-size:15px;font-weight:700">Productos</h2><select id="pss" style="width:auto" onchange="loadProds()"><option value="">Tienda...</option></select></div>
+          <button class="btn bp bsm" onclick="openM('mp')">+ Producto</button>
+        </div>
+        <div class="tw"><table><thead><tr><th>Nombre</th><th>Cat.</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody id="ptb"></tbody></table></div>
+      </div>
+      <div class="page" id="page-staff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><h2 style="font-size:15px;font-weight:700">Staff</h2><select id="stss" style="width:auto" onchange="loadStaff()"><option value="">Tienda...</option></select></div>
+          <button class="btn bp bsm" onclick="openM('mst')">+ Staff</button>
+        </div>
+        <div class="tw"><table><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th></th></tr></thead><tbody id="sttb"></tbody></table></div>
+      </div>
+      <div class="page" id="page-qr">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><h2 style="font-size:15px;font-weight:700">QR Codes</h2><select id="qss" style="width:auto" onchange="loadQR()"><option value="">Tienda...</option></select></div>
+          <button class="btn bp bsm" onclick="openM('mq')">+ QR</button>
+        </div>
+        <div class="g2" id="qg"></div>
+      </div>
+      <div class="page" id="page-orders">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><h2 style="font-size:15px;font-weight:700">Pedidos</h2><select id="oss" style="width:auto" onchange="loadOrders()"><option value="">Tienda...</option></select></div>
+          <select id="osf" style="width:auto" onchange="loadOrders()"><option value="">Todos</option><option value="pending">Pendiente</option><option value="confirmed">Confirmado</option><option value="preparing">Preparando</option><option value="ready">Listo</option><option value="delivered">Entregado</option><option value="cancelled">Cancelado</option></select>
+        </div>
+        <div class="tw"><table><thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Pago</th><th>Fecha</th><th></th></tr></thead><tbody id="otb"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- MODALS -->
+<div class="mo" id="ma"><div class="modal"><div class="mh"><h2>Nuevo Admin</h2><button onclick="closeM('ma')">x</button></div><div class="mb"><div class="fg"><label>Nombre</label><input id="an"></div><div class="fg"><label>Email</label><input type="email" id="ae"></div><div class="fr"><div class="fg"><label>Contrasena</label><input type="password" id="ap"></div><div class="fg"><label>Telefono</label><input id="ath"></div></div></div><div class="mf"><button class="btn bg2" onclick="closeM('ma')">Cancelar</button><button class="btn bp" onclick="createAdmin()">Crear</button></div></div></div>
+<div class="mo" id="ms"><div class="modal"><div class="mh"><h2>Nueva Tienda</h2><button onclick="closeM('ms')">x</button></div><div class="mb"><div class="fg"><label>Nombre</label><input id="sn"></div><div class="fg"><label>Descripcion</label><textarea id="sd" rows="2"></textarea></div><div class="fg"><label>Direccion</label><input id="sa"></div><div class="fg"><label>Plan</label><select id="sp"><option value="starter">Starter</option><option value="negocio">Negocio</option><option value="cadena">Cadena</option></select></div></div><div class="mf"><button class="btn bg2" onclick="closeM('ms')">Cancelar</button><button class="btn bp" onclick="createStore()">Crear</button></div></div></div>
+<div class="mo" id="mp"><div class="modal"><div class="mh"><h2>Nuevo Producto</h2><button onclick="closeM('mp')">x</button></div><div class="mb"><div class="fg"><label>Tienda</label><select id="pst" onchange="loadCats()"></select></div><div class="fr"><div class="fg"><label>Nombre</label><input id="pn"></div><div class="fg"><label>Precio ($)</label><input id="ppr" type="number"></div></div><div class="fr"><div class="fg"><label>Stock (-1=ilimitado)</label><input id="psk" type="number" value="-1"></div><div class="fg"><label>Categoria</label><select id="pcat"><option value="">Sin categoria</option></select></div></div><div class="fg"><label>Descripcion</label><textarea id="pde" rows="2"></textarea></div></div><div class="mf"><button class="btn bg2" onclick="closeM('mp')">Cancelar</button><button class="btn bp" onclick="createProd()">Crear</button></div></div></div>
+<div class="mo" id="mst"><div class="modal"><div class="mh"><h2>Agregar Staff</h2><button onclick="closeM('mst')">x</button></div><div class="mb"><div class="fg"><label>Tienda</label><select id="stst"></select></div><div class="fr"><div class="fg"><label>Nombre</label><input id="stna"></div><div class="fg"><label>Email</label><input type="email" id="stem"></div></div><div class="fr"><div class="fg"><label>Contrasena</label><input type="password" id="stpw"></div><div class="fg"><label>Rol</label><select id="stro"><option value="staff">Staff</option><option value="manager">Manager</option></select></div></div></div><div class="mf"><button class="btn bg2" onclick="closeM('mst')">Cancelar</button><button class="btn bp" onclick="createStaff()">Agregar</button></div></div></div>
+<div class="mo" id="mq"><div class="modal"><div class="mh"><h2>Nuevo QR</h2><button onclick="closeM('mq')">x</button></div><div class="mb"><div class="fg"><label>Tienda</label><select id="qst"></select></div><div class="fg"><label>Etiqueta (ej: Mesa 1)</label><input id="ql" placeholder="Mesa 1"></div></div><div class="mf"><button class="btn bg2" onclick="closeM('mq')">Cancelar</button><button class="btn bp" onclick="createQR()">Generar</button></div></div></div>
+<div class="mo" id="mod"><div class="modal"><div class="mh"><h2>Detalle Pedido</h2><button onclick="closeM('mod')">x</button></div><div class="mb" id="odb">-</div><div class="mf"><button class="btn bg2" onclick="closeM('mod')">Cerrar</button></div></div></div>
+<div id="tc"></div>
+<script>
+const API='';let token=localStorage.getItem('ph_t');let cu=null;let stores=[];
+const SL={pending:'Pendiente',confirmed:'Confirmado',preparing:'Preparando',ready:'Listo',delivered:'Entregado',cancelled:'Cancelado'};
+const SC={pending:'by',confirmed:'bb',preparing:'by',ready:'bg',delivered:'bgr',cancelled:'br'};
+async function api(m,p,b){const h={'Content-Type':'application/json'};if(token)h['Authorization']='Bearer '+token;const r=await fetch(API+p,{method:m,headers:h,body:b?JSON.stringify(b):undefined});if(r.status===401){logout();return null;}const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||'Error');return d;}
+function toast(msg,t=''){const el=document.createElement('div');el.className='toast '+(t||'');el.textContent=msg;document.getElementById('tc').appendChild(el);setTimeout(()=>el.classList.add('show'),10);setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300)},3000);}
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+async function doLogin(){const e=document.getElementById('em').value,p=document.getElementById('pw').value,er=document.getElementById('le');er.style.display='none';try{const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});const d=await r.json();if(!r.ok){er.textContent=d.detail||'Error';er.style.display='block';return;}token=d.access_token;localStorage.setItem('ph_t',token);cu={id:d.user_id,role:d.role,name:d.name};initApp();}catch(err){er.textContent='Error de conexion';er.style.display='block';}}
+function logout(){localStorage.removeItem('ph_t');token=null;location.reload();}
+function toggleTheme(){const r=document.documentElement;r.setAttribute('data-theme',r.getAttribute('data-theme')==='dark'?'light':'dark');}
+function initApp(){document.getElementById('ls').style.display='none';document.getElementById('app').style.display='flex';document.getElementById('un').textContent=cu.name;document.getElementById('ur').textContent=cu.role;document.getElementById('av').textContent=cu.name.slice(0,2).toUpperCase();buildNav();}
+function buildNav(){const nav=document.getElementById('nav');const items=cu.role==='superadmin'?[{id:'sa',icon:'📊',label:'Global',page:'page-sa'},{id:'sa-stores',icon:'🏪',label:'Tiendas',page:'page-sa-stores'}]:[{id:'dash',icon:'📊',label:'Dashboard',page:'page-dash'},{id:'stores',icon:'🏪',label:'Tiendas',page:'page-stores'},{id:'products',icon:'📦',label:'Productos',page:'page-products'},{id:'staff',icon:'👥',label:'Staff',page:'page-staff'},{id:'qr',icon:'⊞',label:'QR Codes',page:'page-qr'},{id:'orders',icon:'🧾',label:'Pedidos',page:'page-orders'}];nav.innerHTML=items.map(i=>`<div class="ni" id="nav-${i.id}" onclick="showPage('${i.page}','${i.id}')">${i.icon} ${i.label}</div>`).join('');if(cu.role==='superadmin'){showPage('page-sa','sa');loadSA();}else{showPage('page-dash','dash');loadMyStores();}}
+function showPage(pid,nid){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(pid)?.classList.add('active');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('nav-'+nid)?.classList.add('active');const L={sa:'Global',dash:'Dashboard','sa-stores':'Tiendas',stores:'Tiendas',products:'Productos',staff:'Staff',qr:'QR Codes',orders:'Pedidos'};document.getElementById('pt').textContent=L[nid]||nid;}
+async function loadSA(){const[st,adms]=await Promise.all([api('GET','/superadmin/stats'),api('GET','/superadmin/admins')]);if(!st)return;document.getElementById('sa-kpis').innerHTML=`<div class="card"><div class="ct2">Admins</div><div class="kpi">${st.total_admins}</div></div><div class="card"><div class="ct2">Tiendas</div><div class="kpi">${st.active_stores}/${st.total_stores}</div></div><div class="card"><div class="ct2">Pedidos</div><div class="kpi">${st.total_orders}</div></div><div class="card"><div class="ct2">Revenue</div><div class="kpi">$${Math.round(st.total_revenue).toLocaleString()}</div></div>`;document.getElementById('atb').innerHTML=adms.map(a=>`<tr><td>${a.name}</td><td>${a.email}</td><td><span class="badge ${a.is_active?'bg':'br'}">${a.is_active?'Activo':'Inactivo'}</span></td><td><button class="btn bd2 bsm" onclick="toggleAdmin(${a.id},${!a.is_active})">${a.is_active?'Desactivar':'Activar'}</button></td></tr>`).join('');const ss=await api('GET','/superadmin/stores');if(ss)document.getElementById('sstb').innerHTML=ss.map(s=>`<tr><td>${s.name}</td><td>${s.owner_id}</td><td><span class="badge bb">${s.plan}</span></td><td><span class="badge ${s.is_active?'bg':'br'}">${s.is_active?'Activa':'Inactiva'}</span></td></tr>`).join('');}
+async function toggleAdmin(id,act){await api('PATCH',`/superadmin/admins/${id}`,{is_active:act});toast(act?'Activado':'Desactivado','ok');loadSA();}
+async function createAdmin(){try{await api('POST','/superadmin/admins',{name:document.getElementById('an').value,email:document.getElementById('ae').value,password:document.getElementById('ap').value,phone:document.getElementById('ath').value||null});toast('Admin creado','ok');closeM('ma');loadSA();}catch(e){toast(e.message,'err');}}
+async function loadMyStores(){stores=await api('GET','/stores')||[];renderStores();populateSel();if(stores.length)loadDash(stores[0].id);}
+function renderStores(){document.getElementById('sg').innerHTML=stores.map(s=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:15px;font-weight:700">${s.name}</div><div style="font-size:12px;color:var(--mu)">${s.address||''}</div></div><span class="badge bb">${s.plan}</span></div><div style="margin-top:.75rem"><span class="badge ${s.is_active?'bg':'br'}">${s.is_active?'Activa':'Inactiva'}</span></div></div>`).join('')||'<p style="color:var(--mu)">Sin tiendas. Crea una!</p>';}
+function populateSel(){const o=stores.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');['pss','stss','qss','oss','pst','stst','qst'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">Selecciona</option>'+o;});}
+async function createStore(){try{await api('POST','/stores',{name:document.getElementById('sn').value,description:document.getElementById('sd').value||null,address:document.getElementById('sa').value||null,plan:document.getElementById('sp').value});toast('Tienda creada','ok');closeM('ms');await loadMyStores();}catch(e){toast(e.message,'err');}}
+async function loadDash(sid){const d=await api('GET',`/dashboard/stores/${sid}`);if(!d)return;document.getElementById('dkpis').innerHTML=`<div class="card"><div class="ct2">Pedidos hoy</div><div class="kpi">${d.orders_today}</div></div><div class="card"><div class="ct2">Revenue hoy</div><div class="kpi">$${Math.round(d.revenue_today).toLocaleString()}</div></div><div class="card"><div class="ct2">Activos</div><div class="kpi" style="color:var(--wr)">${d.orders_active}</div></div><div class="card"><div class="ct2">Total pedidos</div><div class="kpi">${d.orders_total}</div></div>`;document.getElementById('tpl').innerHTML=d.top_products.map(p=>`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--bd);font-size:13px"><span>${p.name}</span><strong>${p.qty}</strong></div>`).join('')||'<p style="color:var(--mu);font-size:13px">Sin datos</p>';const ao=await api('GET',`/stores/${sid}/orders`+(''?'?status=confirmed':''));document.getElementById('aol').innerHTML=ao?.filter(o=>['confirmed','preparing'].includes(o.status)).slice(0,5).map(o=>`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--bd);font-size:13px"><span>#${o.id} ${o.customer_name||'Anonimo'}</span><span class="badge ${SC[o.status]}">${SL[o.status]}</span></div>`).join('')||'<p style="color:var(--mu);font-size:13px">Sin activos</p>';}
+async function loadProds(){const sid=document.getElementById('pss').value;if(!sid)return;const[pr,ca]=await Promise.all([api('GET',`/stores/${sid}/products`),api('GET',`/stores/${sid}/categories`)]);const cm=Object.fromEntries((ca||[]).map(c=>[c.id,c.name]));document.getElementById('ptb').innerHTML=(pr||[]).map(p=>`<tr><td><strong>${p.name}</strong></td><td>${cm[p.category_id]||'-'}</td><td>$${p.price.toLocaleString()}</td><td>${p.stock===-1?'Ilimitado':p.stock}</td><td><span class="badge ${p.is_active?'bg':'br'}">${p.is_active?'Activo':'Inactivo'}</span></td><td style="display:flex;gap:.4rem"><button class="btn bg2 bsm" onclick="toggleProd(${sid},${p.id},${!p.is_active})">${p.is_active?'Desact.':'Activar'}</button><button class="btn bd2 bsm" onclick="delProd(${sid},${p.id})">x</button></td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--mu)">Sin productos</td></tr>';}
+async function loadCats(){const sid=document.getElementById('pst').value;if(!sid)return;const ca=await api('GET',`/stores/${sid}/categories`)||[];document.getElementById('pcat').innerHTML='<option value="">Sin categoria</option>'+ca.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');}
+async function createProd(){const sid=document.getElementById('pst').value;if(!sid){toast('Selecciona tienda','err');return;}try{await api('POST',`/stores/${sid}/products`,{name:document.getElementById('pn').value,price:parseFloat(document.getElementById('ppr').value),stock:parseInt(document.getElementById('psk').value),description:document.getElementById('pde').value||null,category_id:document.getElementById('pcat').value||null});toast('Creado','ok');closeM('mp');loadProds();}catch(e){toast(e.message,'err');}}
+async function toggleProd(sid,pid,act){await api('PATCH',`/stores/${sid}/products/${pid}`,{is_active:act});toast(act?'Activado':'Desactivado');loadProds();}
+async function delProd(sid,pid){if(!confirm('Eliminar?'))return;await api('DELETE',`/stores/${sid}/products/${pid}`);toast('Eliminado');loadProds();}
+async function loadStaff(){const sid=document.getElementById('stss').value;if(!sid)return;const st=await api('GET',`/stores/${sid}/staff`)||[];document.getElementById('sttb').innerHTML=st.map(s=>`<tr><td>${s.user.name}</td><td>${s.user.email}</td><td><span class="badge bb">${s.role}</span></td><td><button class="btn bd2 bsm" onclick="removeStaff(${sid},${s.id})">Remover</button></td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--mu)">Sin staff</td></tr>';}
+async function createStaff(){const sid=document.getElementById('stst').value;if(!sid){toast('Selecciona tienda','err');return;}try{await api('POST',`/stores/${sid}/staff`,{name:document.getElementById('stna').value,email:document.getElementById('stem').value,password:document.getElementById('stpw').value,role:document.getElementById('stro').value});toast('Staff agregado','ok');closeM('mst');loadStaff();}catch(e){toast(e.message,'err');}}
+async function removeStaff(sid,lid){if(!confirm('Remover?'))return;await api('DELETE',`/stores/${sid}/staff/${lid}`);toast('Removido');loadStaff();}
+async function loadQR(){const sid=document.getElementById('qss').value;if(!sid)return;const qrs=await api('GET',`/stores/${sid}/qrcodes`)||[];document.getElementById('qg').innerHTML=qrs.map(q=>`<div class="card" style="text-align:center">${q.qr_image_b64?`<img src="data:image/png;base64,${q.qr_image_b64}" style="width:120px;height:120px;margin:0 auto .75rem;display:block">`:''}<div style="font-weight:700;margin-bottom:.5rem">${q.table_label}</div><div style="display:flex;gap:.5rem;justify-content:center"><a href="/menu?token=${q.token}" target="_blank" class="btn bg2 bsm">Ver menu</a><button class="btn bd2 bsm" onclick="delQR(${sid},${q.id})">x</button></div></div>`).join('')||'<p style="color:var(--mu)">Sin QRs</p>';}
+async function createQR(){const sid=document.getElementById('qst').value,lbl=document.getElementById('ql').value;if(!sid||!lbl){toast('Completa campos','err');return;}try{await api('POST',`/stores/${sid}/qrcodes`,{table_label:lbl});toast('QR generado','ok');closeM('mq');loadQR();}catch(e){toast(e.message,'err');}}
+async function delQR(sid,qid){if(!confirm('Eliminar QR?'))return;await api('DELETE',`/stores/${sid}/qrcodes/${qid}`);toast('Eliminado');loadQR();}
+async function loadOrders(){const sid=document.getElementById('oss').value,st=document.getElementById('osf').value;if(!sid)return;const os=await api('GET',`/stores/${sid}/orders`+(st?`?status=${st}`:''))||[];document.getElementById('otb').innerHTML=os.map(o=>`<tr><td>#${o.id}</td><td>${o.customer_name||'Anonimo'}</td><td>$${o.total.toLocaleString()}</td><td><span class="badge ${SC[o.status]||'bgr'}">${SL[o.status]||o.status}</span></td><td><span class="badge ${o.payment_status==='paid'?'bg':o.payment_status==='failed'?'br':'by'}">${o.payment_status}</span></td><td>${new Date(o.created_at).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="display:flex;gap:.4rem"><button class="btn bg2 bsm" onclick="showOrder(${o.id})">Ver</button><select style="width:auto;padding:.25rem .4rem;font-size:12px" onchange="chgStatus(${o.id},this.value,this)"><option value="">Estado</option><option value="confirmed">Confirmar</option><option value="preparing">Preparar</option><option value="ready">Listo</option><option value="delivered">Entregado</option><option value="cancelled">Cancelar</option></select></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--mu)">Sin pedidos</td></tr>';}
+async function chgStatus(oid,st,sel){if(!st)return;await api('PATCH',`/orders/${oid}/status`,{status:st});toast('Actualizado','ok');sel.value='';loadOrders();}
+async function showOrder(oid){const o=await api('GET',`/orders/${oid}`);if(!o)return;document.getElementById('odb').innerHTML=`<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem"><span class="badge ${SC[o.status]}">${SL[o.status]}</span><span class="badge ${o.payment_status==='paid'?'bg':'by'}">${o.payment_status}</span></div><p style="font-size:13px;color:var(--mu);margin-bottom:1rem">Cliente: <strong>${o.customer_name||'Anonimo'}</strong></p><div class="tw"><table><thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${i.product.name}</td><td>${i.qty}</td><td>$${i.unit_price.toLocaleString()}</td><td>$${(i.qty*i.unit_price).toLocaleString()}</td></tr>`).join('')}</tbody></table></div><div style="text-align:right;font-size:15px;font-weight:800;margin-top:.75rem">Total: $${o.total.toLocaleString()}</div>`;openM('mod');}
+if(token){api('GET','/auth/me').then(u=>{if(u){cu={id:u.id,role:u.role,name:u.name};initApp();}else document.getElementById('ls').style.display='flex';});}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('ls').style.display!=='none')doLogin();});
+</script></body></html>
