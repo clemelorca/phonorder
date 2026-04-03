@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#01696f">
+<title>Menu</title>
+<style>
+:root{--bg:#f7f6f2;--sf:#fff;--sf2:#f3f0ec;--bd:#d4d1ca;--tx:#28251d;--mu:#7a7974;
+--pr:#01696f;--ph:#0c4e54;--pl:#cedcd8;--sg:#437a22;--sl:#d4dfcc;--dr:#c0392b;
+--r:.75rem;--rs:.375rem;--fn:"DM Sans",system-ui,sans-serif;}
+@media(prefers-color-scheme:dark){:root{--bg:#171614;--sf:#1c1b19;--sf2:#252422;--bd:#393836;--tx:#cdccca;--mu:#797876;--pr:#4f98a3;--ph:#227f8b;--pl:#313b3b;--sg:#6daa45;--sl:#3a4435;}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fn);font-size:15px;color:var(--tx);background:var(--bg);min-height:100vh;max-width:480px;margin:0 auto;}
+button{cursor:pointer;font:inherit;border:none;background:none;color:inherit;}
+.shdr{background:var(--pr);color:#fff;padding:1.25rem 1.25rem .5rem;}
+.sname{font-size:18px;font-weight:800;margin-bottom:.15rem;}
+.sdesc{font-size:12px;opacity:.8;margin-bottom:.75rem;}
+.tlbl{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.2);border-radius:9999px;padding:.25rem .75rem;font-size:12px;font-weight:700;}
+.ctabs{display:flex;gap:.5rem;overflow-x:auto;padding:.75rem 1.25rem;background:var(--sf);border-bottom:1px solid var(--bd);scrollbar-width:none;}
+.ctabs::-webkit-scrollbar{display:none;}
+.ctab{flex-shrink:0;padding:.4rem .9rem;border-radius:9999px;font-size:13px;font-weight:600;border:1.5px solid var(--bd);color:var(--mu);background:var(--sf);}
+.ctab.active{background:var(--pr);color:#fff;border-color:var(--pr);}
+.csec{padding:.75rem 1.25rem;}
+.clbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--mu);margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:1px solid var(--bd);}
+.pc{display:flex;gap:.75rem;background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);padding:.9rem;margin-bottom:.6rem;}
+.pimg{width:72px;height:72px;border-radius:var(--rs);background:var(--sf2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+.pi{flex:1;min-width:0;}
+.pn{font-size:14px;font-weight:700;margin-bottom:.2rem;}
+.pd{font-size:12px;color:var(--mu);line-height:1.4;margin-bottom:.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pf{display:flex;align-items:center;justify-content:space-between;}
+.ppr{font-size:15px;font-weight:800;color:var(--pr);}
+.qc{display:flex;align-items:center;gap:.5rem;}
+.qb{width:28px;height:28px;border-radius:50%;background:var(--pr);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.qb:disabled{background:var(--sf2);color:var(--mu);}
+.qv{font-size:14px;font-weight:700;min-width:20px;text-align:center;}
+.fab{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--pr);color:#fff;border-radius:9999px;padding:.85rem 1.75rem;font-size:15px;font-weight:700;box-shadow:0 8px 24px rgba(1,105,111,.4);display:flex;align-items:center;gap:.75rem;width:calc(100% - 2.5rem);max-width:400px;justify-content:space-between;transition:opacity .2s,transform .2s;}
+.fab.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(12px);}
+.fbc{background:rgba(255,255,255,.25);border-radius:9999px;padding:.15rem .6rem;font-size:13px;}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;backdrop-filter:blur(4px);}
+.ov.open{display:block;}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100vw);max-height:92vh;background:var(--sf);border-radius:1.5rem 1.5rem 0 0;z-index:101;overflow:hidden;display:flex;flex-direction:column;}
+.shdl{width:40px;height:4px;background:var(--bd);border-radius:9999px;margin:.75rem auto;}
+.shh{padding:.5rem 1.25rem 1rem;border-bottom:1px solid var(--bd);}
+.shh h2{font-size:16px;font-weight:800;}
+.shb{flex:1;overflow-y:auto;padding:1rem 1.25rem;}
+.ci{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--bd);}
+.ci:last-child{border:none;}
+.cin{flex:1;font-size:14px;font-weight:600;}
+.cip{font-size:13px;color:var(--mu);}
+.ctot{display:flex;justify-content:space-between;font-size:16px;font-weight:800;padding:1rem 0 .5rem;border-top:1px solid var(--bd);margin-top:.5rem;}
+.shf{padding:1rem 1.25rem;border-top:1px solid var(--bd);background:var(--sf);}
+.shf input,.shf select{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:.6rem .9rem;font-size:14px;margin-bottom:.5rem;outline:none;color:var(--tx);}
+.chk{width:100%;padding:1rem;background:var(--pr);color:#fff;border-radius:var(--r);font-size:16px;font-weight:800;cursor:pointer;font:inherit;}
+.chk:hover{background:var(--ph);}
+#cscr{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+#cscr.show{display:flex;}
+.con{font-size:2rem;font-weight:800;color:var(--pr);margin-bottom:.5rem;}
+#load{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem;}
+.spin{width:36px;height:36px;border:3px solid var(--bd);border-top-color:var(--pr);border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+</style></head><body>
+<div id="load"><div class="spin"></div><p style="color:var(--mu);font-size:14px">Cargando menu...</p></div>
+<div id="merr" style="display:none;align-items:center;justify-content:center;min-height:80vh;flex-direction:column;text-align:center;padding:2rem">
+  <div style="font-size:3rem;margin-bottom:1rem">?</div><h2>QR invalido</h2>
+  <p id="errm" style="color:var(--mu);font-size:14px;margin-top:.5rem">Este QR no es valido.</p>
+</div>
+<div id="mapp" style="display:none">
+  <div class="shdr"><div class="sname" id="sn"></div><div class="sdesc" id="sd"></div><div class="tlbl">Mesa: <span id="tl"></span></div></div>
+  <div class="ctabs" id="cts"></div>
+  <div id="mc"></div>
+  <div style="height:100px"></div>
+</div>
+<button class="fab hidden" id="fab" onclick="openCart()">
+  <span>Ver carrito</span>
+  <div style="display:flex;align-items:center;gap:.5rem"><span id="ft">$0</span><span class="fbc" id="fc">0</span></div>
+</button>
+<div class="ov" id="ov" onclick="closeCart()"></div>
+<div class="sheet" id="sh">
+  <div class="shdl"></div>
+  <div class="shh"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Tu pedido</h2><button onclick="closeCart()" style="font-size:18px;color:var(--mu)">x</button></div></div>
+  <div class="shb"><div id="cil"></div><div class="ctot"><span>Total</span><span id="ctd">$0</span></div></div>
+  <div class="shf">
+    <input type="text" id="cna" placeholder="Tu nombre (opcional)">
+    <input type="tel" id="cph" placeholder="Telefono (opcional)">
+    <input type="text" id="cno" placeholder="Notas para la tienda (opcional)">
+    <select id="cpm"><option value="webpay">Webpay</option><option value="mercadopago">MercadoPago</option><option value="transfer">Transferencia</option></select>
+    <button class="chk" onclick="placeOrder()" id="ckb">Confirmar pedido</button>
+  </div>
+</div>
+<div id="cscr">
+  <div style="font-size:4rem;margin-bottom:1rem">ok</div>
+  <div style="font-size:14px;color:var(--mu)">Pedido #</div>
+  <div class="con" id="coid">-</div>
+  <p style="font-size:15px;color:var(--mu);margin:1rem 0 2rem;max-width:30ch">Recibido! Te avisamos cuando este listo.</p>
+  <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:2rem;font-size:13px;flex-wrap:wrap">
+    <span id="st1" style="background:var(--sl);color:var(--sg);padding:.3rem .8rem;border-radius:9999px;font-weight:700">Recibido</span>
+    <span>-></span><span id="st2" style="padding:.3rem .8rem;border-radius:9999px;border:1px solid var(--bd)">Preparando</span>
+    <span>-></span><span id="st3" style="padding:.3rem .8rem;border-radius:9999px;border:1px solid var(--bd)">Listo</span>
+  </div>
+  <button style="width:100%;max-width:320px;padding:1rem;background:var(--pr);color:#fff;border-radius:var(--r);font-size:15px;font-weight:800;cursor:pointer;border:none;font-family:inherit" onclick="newOrder()">Hacer otro pedido</button>
+</div>
+<script>
+let qrToken=new URLSearchParams(location.search).get('token');
+let menu=null;let cart={};let orderId=null;let pollT=null;
+async function init(){
+  if(!qrToken){showErr('Falta token QR en la URL.');return;}
+  try{const r=await fetch(`/menu-data?token=${qrToken}`);if(!r.ok){const d=await r.json();showErr(d.detail||'Error');return;}menu=await r.json();render();}
+  catch(e){showErr('No se pudo conectar al servidor.');}
+}
+function showErr(m){document.getElementById('load').style.display='none';document.getElementById('errm').textContent=m;document.getElementById('merr').style.display='flex';}
+function emoji(n){n=n.toLowerCase();if(/caf[eé]|espresso|latte|cappu/.test(n))return'☕';if(/t[eé]/.test(n))return'🍵';if(/pizza/.test(n))return'🍕';if(/burger|hambur/.test(n))return'🍔';if(/pasta/.test(n))return'🍝';if(/ensalada/.test(n))return'🥗';if(/jugo|naranja/.test(n))return'🍊';if(/agua/.test(n))return'💧';if(/sandwich|tostado|avocado/.test(n))return'🥪';if(/croissant|empanada/.test(n))return'🥐';if(/torta|cake|brownie|cheesecake|muffin|postre/.test(n))return'🎂';return'🍽️';}
+function render(){
+  document.getElementById('load').style.display='none';document.getElementById('mapp').style.display='block';
+  document.getElementById('sn').textContent=menu.store_name;document.getElementById('sd').textContent=menu.store_description||'';
+  document.getElementById('tl').textContent=menu.table_label;document.title=menu.store_name;
+  const tabs=document.getElementById('cts'),mc=document.getElementById('mc');
+  tabs.innerHTML='';mc.innerHTML='';
+  menu.categories.forEach((cat,i)=>{
+    if(!cat.products.length)return;
+    const tab=document.createElement('button');tab.className='ctab'+(i===0?' active':'');tab.textContent=cat.name;
+    tab.onclick=()=>{document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.getElementById('c'+cat.id)?.scrollIntoView({behavior:'smooth',block:'start'});};
+    tabs.appendChild(tab);
+    const sec=document.createElement('div');sec.className='csec';sec.id='c'+cat.id;
+    sec.innerHTML=`<div class="clbl">${cat.name}</div>`+cat.products.map(p=>pcard(p)).join('');
+    mc.appendChild(sec);
+  });
+}
+function pcard(p){const oos=p.stock===0;return `<div class="pc" style="${oos?'opacity:.5':''}"><div class="pimg">${emoji(p.name)}</div><div class="pi"><div class="pn">${p.name}</div>${p.description?`<div class="pd">${p.description}</div>`:''}<div class="pf"><div><div class="ppr">$${p.price.toLocaleString()}</div>${p.stock>0&&p.stock<=10?`<div style="font-size:11px;color:var(--mu)">Solo ${p.stock} disp.</div>`:''}</div>${oos?'<span style="font-size:12px;color:var(--dr);font-weight:600">Sin stock</span>':`<div class="qc"><button class="qb" onclick="add(${p.id},-1)" id="qm${p.id}" ${(cart[p.id]?.qty||0)===0?'disabled':''}>-</button><span class="qv" id="qv${p.id}">${cart[p.id]?.qty||''}</span><button class="qb" onclick="add(${p.id},1)">+</button></div>`}</div></div></div>`;}
+function findP(id){for(const c of menu.categories){const p=c.products.find(p=>p.id===id);if(p)return p;}return null;}
+function add(pid,delta){const p=findP(pid);if(!p)return;const cur=cart[pid]?.qty||0;const nq=Math.max(0,cur+delta);if(p.stock!==-1&&nq>p.stock)return;if(nq===0)delete cart[pid];else cart[pid]={qty:nq,product:p};const v=document.getElementById('qv'+pid),m=document.getElementById('qm'+pid);if(v)v.textContent=nq||'';if(m)m.disabled=nq===0;updateUI();}
+function updateUI(){const items=Object.values(cart);const tq=items.reduce((s,i)=>s+i.qty,0);const tp=items.reduce((s,i)=>s+i.qty*i.product.price,0);const fab=document.getElementById('fab');fab.classList.toggle('hidden',tq===0);document.getElementById('fc').textContent=tq;document.getElementById('ft').textContent='$'+tp.toLocaleString();document.getElementById('ctd').textContent='$'+tp.toLocaleString();document.getElementById('cil').innerHTML=items.length?items.map(i=>`<div class="ci"><div class="qc"><button class="qb" style="width:24px;height:24px;font-size:12px" onclick="add(${i.product.id},-1)">-</button><span class="qv" style="font-size:13px">${i.qty}</span><button class="qb" style="width:24px;height:24px;font-size:12px" onclick="add(${i.product.id},1)">+</button></div><span class="cin">${i.product.name}</span><span class="cip">$${(i.qty*i.product.price).toLocaleString()}</span></div>`).join(''):'<p style="color:var(--mu);text-align:center;padding:1.5rem;font-size:14px">Carrito vacio</p>';}
+function openCart(){document.getElementById('ov').classList.add('open');}
+function closeCart(){document.getElementById('ov').classList.remove('open');}
+async function placeOrder(){const items=Object.values(cart);if(!items.length)return;const btn=document.getElementById('ckb');btn.disabled=true;btn.textContent='Enviando...';
+  try{const body={qr_token:qrToken,customer_name:document.getElementById('cna').value||null,customer_phone:document.getElementById('cph').value||null,notes:document.getElementById('cno').value||null,payment_method:document.getElementById('cpm').value,items:items.map(i=>({product_id:i.product.id,qty:i.qty}))};
+  const r=await fetch('/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const o=await r.json();if(!r.ok)throw new Error(o.detail||'Error');
+  await fetch(`/payments/${o.id}/confirm`,{method:'POST'});
+  orderId=o.id;closeCart();document.getElementById('coid').textContent=o.id;document.getElementById('cscr').classList.add('show');cart={};updateUI();pollStatus(o.id);}
+  catch(e){alert('Error: '+e.message);btn.disabled=false;btn.textContent='Confirmar pedido';}}
+function pollStatus(oid){if(pollT)clearInterval(pollT);pollT=setInterval(async()=>{const r=await fetch(`/orders/${oid}`);const o=await r.json();if(['preparing','ready','delivered'].includes(o.status)){document.getElementById('st2').style.cssText='background:var(--wl);color:var(--wr);padding:.3rem .8rem;border-radius:9999px;font-weight:700';}if(['ready','delivered'].includes(o.status)){document.getElementById('st3').style.cssText='background:var(--sl);color:var(--sg);padding:.3rem .8rem;border-radius:9999px;font-weight:700';}if(['delivered','cancelled'].includes(o.status))clearInterval(pollT);},5000);}
+function newOrder(){document.getElementById('cscr').classList.remove('show');if(pollT)clearInterval(pollT);render();}
+init();
+</script></body></html>
