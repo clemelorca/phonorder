@@ -1642,7 +1642,7 @@ async function loadSA(){
       <div class="kpi-label" style="color:${st.commission_nonmp_month>0?'var(--orange)':'var(--muted)'}">⏳ Pendiente facturar</div>
       <div class="kpi-val">${f(st.commission_nonmp_month)}</div>
       <div class="kpi-delta">Webpay / Getnet este mes</div>
-    </div>`;
+    </div>
     <div class="kpi"><div class="kpi-label">Churn Rate</div><div class="kpi-val" style="color:${st.churn_rate>5?'var(--danger)':st.churn_rate>2?'var(--orange)':'var(--success)'}">${st.churn_rate||0}%</div><div class="kpi-delta">suscripciones canceladas</div></div>
     <div class="kpi"><div class="kpi-label">Retención</div><div class="kpi-val" style="color:var(--success)">${st.retention_rate||0}%</div><div class="kpi-delta">de suscriptores activos</div></div>
     <div class="kpi"><div class="kpi-label">LTV Suscripción</div><div class="kpi-val">${st.ltv_subscription>0?f(st.ltv_subscription):'N/A'}</div><div class="kpi-delta">precio_mensual / churn</div></div>`;
