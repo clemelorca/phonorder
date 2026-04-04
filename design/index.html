@@ -208,6 +208,9 @@ footer{padding:1.75rem 1.5rem;border-top:1px solid var(--divider);}
   align-items:center;flex-wrap:wrap;gap:1rem;}
 footer p{font-size:var(--t-xs);color:var(--faint);}
 
+/* ── LOGO DARK MODE ── */
+[data-theme="dark"] .logo img{filter:brightness(0) invert(1);}
+
 /* ── MOBILE MENU ── */
 .menu-btn{display:none;width:36px;height:36px;border-radius:var(--r-full);align-items:center;justify-content:center;color:var(--muted);transition:background var(--ease);cursor:pointer;border:none;background:transparent;}
 .menu-btn:hover{background:var(--surface-off);}
@@ -268,11 +271,11 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
         <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
         SaaS · Pedidos QR para tiendas
       </div>
-      <h1>Pide con tu <em>phone</em>,<br>retira en tienda</h1>
+      <h1>Pide con tu <em>teléfono</em>,<br>en la misma tienda</h1>
       <p class="hero-sub">Sin filas, sin apps, sin complicaciones. El cliente escanea el QR de tu local, elige, paga y retira. Tú recibes todo en tu panel.</p>
       <div class="hero-btns">
-        <a href="admin.html" class="btn-p">Ver demo del panel →</a>
-        <a href="order.html" class="btn-g">Vista del cliente</a>
+        <a href="/register" class="btn-p">Crear mi tienda gratis →</a>
+        <a href="order.html" class="btn-g">Ver cómo funciona</a>
       </div>
     </div>
     <div class="mockup-wrap">
@@ -324,7 +327,7 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
     <div class="stat"><div class="stat-val">+300K</div><div class="stat-label">Tiendas en Chile</div></div>
     <div class="stat"><div class="stat-val">0%</div><div class="stat-label">App que instalar</div></div>
     <div class="stat"><div class="stat-val">3 min</div><div class="stat-label">Setup inicial</div></div>
-    <div class="stat"><div class="stat-val">2 fuentes</div><div class="stat-label">de ingreso (SaaS + comisión)</div></div>
+    <div class="stat"><div class="stat-val">+ventas</div><div class="stat-label">en menos tiempo</div></div>
   </div>
 </div>
 
@@ -339,8 +342,11 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
     <div class="steps">
       <div class="step"><div class="step-n">1</div><h3>Escanea el QR</h3><p>QR único por mesa, mostrador o punto de venta. Generado automáticamente desde el panel.</p></div>
       <div class="step"><div class="step-n">2</div><h3>Elige del menú</h3><p>Web app sin instalación. Fotos, descripciones y opciones de personalización por producto.</p></div>
-      <div class="step"><div class="step-n">3</div><h3>Paga en línea</h3><p>Webpay, MercadoPago o transferencia. Confirmación instantánea con comprobante digital.</p></div>
+      <div class="step"><div class="step-n">3</div><h3>Paga en línea</h3><p>MercadoPago, Webpay o Getnet. Confirmación instantánea con comprobante digital.</p></div>
       <div class="step"><div class="step-n">4</div><h3>Retira el pedido</h3><p>La tienda ve la orden en pantalla. El cliente sigue el estado en tiempo real y retira cuando está listo.</p></div>
+    </div>
+    <div style="text-align:center;margin-top:2.75rem;">
+      <a href="/register" class="btn-p">Crear mi tienda gratis →</a>
     </div>
   </div>
 </section>
@@ -382,7 +388,7 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         </div>
         <h3>Pagos integrados desde día 1</h3>
-        <p>Webpay y MercadoPago. Sin intermediarios extra. Liquidación directa al comercio.</p>
+        <p>MercadoPago, Webpay o Getnet. Sin intermediarios extra. Liquidación directa al comercio.</p>
       </div>
       <div class="bcard bg2">
         <div class="bcard-icon" style="background:var(--primary-hl)">
@@ -391,6 +397,9 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
         <h3>Analytics y reportes</h3>
         <p>Ventas por hora, día y producto. Exportación en CSV. Identifica tus top sellers.</p>
       </div>
+    </div>
+    <div style="text-align:center;margin-top:2.75rem;">
+      <a href="/register" class="btn-p">Empezar ahora →</a>
     </div>
   </div>
 </section>
@@ -476,7 +485,7 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
           <li><span class="chk">✓</span>2% comisión</li>
           <li><span class="chk">✓</span>Soporte email</li>
         </ul>
-        <a href="admin.html" class="pcard-cta">Empezar gratis</a>
+        <a href="/register?plan=starter" class="pcard-cta">Contratar Starter →</a>
       </div>
       <div class="pcard hot">
         <h3>Negocio ⭐</h3>
@@ -490,7 +499,7 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
           <li><span class="chk">✓</span>Soporte prioritario</li>
           <li><span class="chk">✓</span>Reportes avanzados</li>
         </ul>
-        <a href="admin.html" class="pcard-cta">Comenzar ahora</a>
+        <a href="/register?plan=negocio" class="pcard-cta">Contratar Negocio →</a>
       </div>
       <div class="pcard">
         <h3>Cadena</h3>
@@ -503,7 +512,7 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
           <li><span class="chk">✓</span>Comisión negociada</li>
           <li><span class="chk">✓</span>Account manager</li>
         </ul>
-        <a href="#" class="pcard-cta">Contactar ventas</a>
+        <a href="/register?plan=cadena" class="pcard-cta">Contactar ventas →</a>
       </div>
     </div>
   </div>
@@ -514,7 +523,7 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
   <div class="cta-box">
     <h2>¿Listo para digitalizar tu tienda?</h2>
     <p>Empieza hoy. Sin tarjeta de crédito. Configura tu local en menos de 3 minutos.</p>
-    <a href="admin.html" class="btn-white">Ver demo del panel →</a>
+    <a href="/register" class="btn-white">Crear mi cuenta gratis →</a>
   </div>
 </section>
 

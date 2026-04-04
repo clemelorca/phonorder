@@ -20,6 +20,10 @@ class QRType(str,Enum):
 class Plan(str,Enum):
     starter="starter";negocio="negocio";cadena="cadena"
 
+class RegisterRequest(BaseModel):
+    name:str;email:EmailStr;password:str
+    phone:Optional[str]=None;plan:Optional[str]="starter"
+
 class LoginRequest(BaseModel):
     email:EmailStr;password:str
 class TokenResponse(BaseModel):

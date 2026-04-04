@@ -1,7 +1,7 @@
 from fastapi import APIRouter,Depends,HTTPException,Request
-from database import get_db,User,StoreStaff,StaffRole
-from auth import verify_password,create_access_token,create_refresh_token,decode_token,get_current_user
-from schemas import LoginRequest,TokenResponse,RefreshRequest,UserOut
+from database import get_db,User,StoreStaff,StaffRole,UserRole
+from auth import verify_password,create_access_token,create_refresh_token,decode_token,get_current_user,hash_password
+from schemas import LoginRequest,TokenResponse,RefreshRequest,UserOut,RegisterRequest
 from main import limiter
 
 router=APIRouter(prefix="/auth",tags=["auth"])
@@ -32,6 +32,18 @@ def refresh(request:Request,data:RefreshRequest,db=Depends(get_db)):
     if p.get("type")!="refresh": raise HTTPException(401)
     u=db.query(User).filter(User.id==int(p["sub"])).first()
     if not u or not u.is_active: raise HTTPException(401)
+    staff_role=_get_staff_role(u.id,db)
+    return TokenResponse(access_token=create_access_token(u.id,u.role.value),
+        refresh_token=create_refresh_token(u.id),user_id=u.id,role=u.role.value,name=u.name,staff_role=staff_role)
+
+@router.post("/register",response_model=TokenResponse)
+@limiter.limit("5/minute")
+def register(request:Request,data:RegisterRequest,db=Depends(get_db)):
+    if db.query(User).filter(User.email==data.email).first():
+        raise HTTPException(400,"Este email ya está registrado")
+    u=User(name=data.name,email=data.email,password_hash=hash_password(data.password),
+           role=UserRole.admin,phone=data.phone,is_active=True)
+    db.add(u);db.commit();db.refresh(u)
     staff_role=_get_staff_role(u.id,db)
     return TokenResponse(access_token=create_access_token(u.id,u.role.value),
         refresh_token=create_refresh_token(u.id),user_id=u.id,role=u.role.value,name=u.name,staff_role=staff_role)

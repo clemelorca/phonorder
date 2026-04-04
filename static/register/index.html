@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crear cuenta · Skanorder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f2;--surface:#fff;--surface-off:#f1eee9;
+  --border:rgba(40,37,29,.1);--divider:rgba(40,37,29,.07);
+  --text:#28251d;--muted:#7a7974;--faint:#bab9b4;
+  --primary:#01696f;--primary-h:#0c4e54;--primary-hl:#cedcd8;
+  --success:#437a22;--success-hl:#d4dfcc;
+  --danger:#c0392b;--danger-hl:#f8d7d3;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07);--shadow-md:0 4px 14px rgba(0,0,0,.09);--shadow-lg:0 12px 36px rgba(0,0,0,.13);
+  --r-sm:.375rem;--r-md:.5rem;--r-lg:.75rem;--r-xl:1rem;--r-full:9999px;
+  --font-d:"Instrument Serif",Georgia,serif;--font-b:"DM Sans","Helvetica Neue",sans-serif;
+  --ease:180ms cubic-bezier(.16,1,.3,1);
+  --orange:#d97706;--orange-hl:#fef3c7;
+}
+[data-theme="dark"]{
+  --bg:#111110;--surface:#1a1917;--surface-off:#1d1c1a;
+  --border:rgba(255,255,255,.09);--divider:rgba(255,255,255,.05);
+  --text:#cdccca;--muted:#797876;--faint:#4a4947;
+  --primary:#4f98a3;--primary-h:#227f8b;--primary-hl:#1e3535;
+  --success:#6daa45;--success-hl:#2e3e28;
+  --danger:#e06c75;--danger-hl:#3d2426;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:var(--font-b);color:var(--text);background:var(--bg);min-height:100dvh;display:flex;flex-direction:column;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit;}
+input{font:inherit;}
+
+/* HEADER */
+.hd{padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--divider);}
+.hd-logo{display:flex;align-items:center;gap:.5rem;color:var(--text);}
+.hd-logo img{height:28px;max-width:130px;}
+.hd-back{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;transition:color var(--ease);}
+.hd-back:hover{color:var(--text);}
+
+/* LAYOUT */
+.wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:2.5rem 1rem 4rem;}
+.card{width:100%;max-width:520px;}
+
+/* STEPS INDICATOR */
+.steps-bar{display:flex;align-items:center;gap:.5rem;margin-bottom:2.25rem;}
+.step-dot{width:28px;height:28px;border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border:2px solid var(--border);color:var(--muted);transition:all var(--ease);flex-shrink:0;}
+.step-dot.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.step-dot.done{background:var(--success-hl);border-color:var(--success);color:var(--success);}
+.step-line{flex:1;height:2px;background:var(--divider);border-radius:1px;}
+.step-line.done{background:var(--success);}
+.step-label{font-size:.72rem;color:var(--muted);font-weight:500;}
+
+/* PLAN CARDS */
+.plan-title{font-family:var(--font-d);font-size:1.75rem;margin-bottom:.4rem;}
+.plan-subtitle{font-size:.9rem;color:var(--muted);margin-bottom:2rem;line-height:1.5;}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:2rem;}
+@media(max-width:520px){.plans{grid-template-columns:1fr;}}
+.pcard{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-xl);padding:1.25rem;cursor:pointer;transition:border-color var(--ease),box-shadow var(--ease),transform var(--ease);position:relative;}
+.pcard:hover{border-color:var(--primary);box-shadow:var(--shadow-sm);}
+.pcard.selected{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-hl);}
+.pcard.hot{border-color:var(--primary);}
+.pcard-badge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.6rem;font-weight:800;padding:.2rem .65rem;border-radius:0 0 var(--r-md) var(--r-md);white-space:nowrap;letter-spacing:.04em;}
+.pcard-emoji{font-size:1.5rem;margin-bottom:.6rem;}
+.pcard-name{font-weight:700;font-size:.9rem;margin-bottom:.25rem;}
+.pcard-price{font-size:1.1rem;font-weight:800;color:var(--primary);}
+.pcard-price span{font-size:.7rem;font-weight:500;color:var(--muted);}
+.pcard-check{position:absolute;top:.6rem;right:.6rem;width:20px;height:20px;border-radius:var(--r-full);background:var(--primary);display:none;align-items:center;justify-content:center;}
+.pcard.selected .pcard-check{display:flex;}
+.pcard-check svg{width:11px;height:11px;stroke:#fff;stroke-width:3;}
+
+/* CADENA CONTACT */
+.cadena-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:2rem;text-align:center;display:none;}
+.cadena-box.show{display:block;}
+.cadena-box h3{font-family:var(--font-d);font-size:1.4rem;margin-bottom:.5rem;}
+.cadena-box p{font-size:.875rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6;}
+.cadena-box a{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 1.75rem;background:var(--primary);color:#fff;border-radius:var(--r-full);font-weight:700;font-size:.875rem;transition:background var(--ease);}
+.cadena-box a:hover{background:var(--primary-h);}
+
+/* FORM */
+.form-title{font-family:var(--font-d);font-size:1.75rem;margin-bottom:.4rem;}
+.form-subtitle{font-size:.9rem;color:var(--muted);margin-bottom:2rem;line-height:1.5;}
+.plan-pill{display:inline-flex;align-items:center;gap:.4rem;background:var(--primary-hl);color:var(--primary);border-radius:var(--r-full);padding:.25rem .85rem;font-size:.78rem;font-weight:700;margin-bottom:1.5rem;}
+.field{margin-bottom:1.1rem;}
+.field label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.4rem;color:var(--muted);}
+.field input{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:var(--r-lg);font-size:.9rem;background:var(--surface);color:var(--text);outline:none;transition:border-color var(--ease);}
+.field input:focus{border-color:var(--primary);}
+.field input.err{border-color:var(--danger);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+@media(max-width:400px){.field-row{grid-template-columns:1fr;}}
+.hint{font-size:.75rem;color:var(--muted);margin-top:.3rem;}
+.hint.err{color:var(--danger);}
+
+/* BTN */
+.btn-main{width:100%;padding:.85rem;background:var(--primary);color:#fff;border-radius:var(--r-full);font-size:.925rem;font-weight:700;border:none;cursor:pointer;transition:background var(--ease),opacity var(--ease);margin-top:.5rem;}
+.btn-main:hover{background:var(--primary-h);}
+.btn-main:disabled{opacity:.55;cursor:not-allowed;}
+.btn-sec{width:100%;padding:.75rem;border:1.5px solid var(--border);color:var(--muted);border-radius:var(--r-full);font-size:.875rem;font-weight:600;cursor:pointer;transition:border-color var(--ease),color var(--ease);margin-top:.6rem;}
+.btn-sec:hover{border-color:var(--primary);color:var(--primary);}
+
+/* ERROR GLOBAL */
+.err-box{background:var(--danger-hl);color:var(--danger);border-radius:var(--r-lg);padding:.75rem 1rem;font-size:.85rem;margin-bottom:1rem;display:none;}
+.err-box.show{display:block;}
+
+/* SUCCESS */
+.success-wrap{text-align:center;padding:2rem 0;display:none;}
+.success-wrap.show{display:block;}
+.success-icon{font-size:3rem;margin-bottom:1rem;}
+.success-wrap h2{font-family:var(--font-d);font-size:1.75rem;margin-bottom:.5rem;}
+.success-wrap p{font-size:.9rem;color:var(--muted);margin-bottom:2rem;}
+.progress-bar{height:4px;background:var(--divider);border-radius:2px;overflow:hidden;margin-bottom:1.5rem;}
+.progress-fill{height:100%;background:var(--primary);border-radius:2px;animation:fill 2s ease forwards;}
+@keyframes fill{from{width:0}to{width:100%}}
+
+/* DIVIDER */
+.or{display:flex;align-items:center;gap:.75rem;margin:.75rem 0;color:var(--faint);font-size:.75rem;}
+.or::before,.or::after{content:'';flex:1;height:1px;background:var(--divider);}
+
+/* FOOTER */
+.foot{text-align:center;padding:1.5rem;border-top:1px solid var(--divider);font-size:.78rem;color:var(--faint);}
+.foot a{color:var(--muted);transition:color var(--ease);}
+.foot a:hover{color:var(--text);}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <a href="/" class="hd-logo">
+    <img src="/static/skanorder.svg" alt="Skanorder" id="logo-img">
+  </a>
+  <a href="/" class="hd-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Volver al inicio
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="card">
+
+    <!-- STEPS BAR -->
+    <div class="steps-bar" id="steps-bar">
+      <div class="step-dot active" id="sd1">1</div>
+      <div class="step-label">Plan</div>
+      <div class="step-line" id="sl1"></div>
+      <div class="step-dot" id="sd2">2</div>
+      <div class="step-label">Cuenta</div>
+      <div class="step-line" id="sl2"></div>
+      <div class="step-dot" id="sd3">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="step-label">¡Listo!</div>
+    </div>
+
+    <!-- STEP 1: PLAN -->
+    <div id="step1">
+      <h1 class="plan-title">Elige tu plan</h1>
+      <p class="plan-subtitle">Sin tarjeta de crédito para empezar. Podés cambiar de plan cuando quieras.</p>
+
+      <div class="plans">
+        <div class="pcard" data-plan="starter" onclick="selectPlan('starter')">
+          <div class="pcard-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pcard-emoji">🌱</div>
+          <div class="pcard-name">Starter</div>
+          <div class="pcard-price">$49.990<span>/mes</span></div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:.4rem;">1 local</div>
+        </div>
+        <div class="pcard hot" data-plan="negocio" onclick="selectPlan('negocio')">
+          <div class="pcard-badge">RECOMENDADO</div>
+          <div class="pcard-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pcard-emoji">🏪</div>
+          <div class="pcard-name">Negocio</div>
+          <div class="pcard-price">$99.990<span>/mes</span></div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:.4rem;">hasta 3 locales</div>
+        </div>
+        <div class="pcard" data-plan="cadena" onclick="selectPlan('cadena')">
+          <div class="pcard-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pcard-emoji">🏢</div>
+          <div class="pcard-name">Cadena</div>
+          <div class="pcard-price" style="font-size:.9rem;">A medida</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:.4rem;">multi-local</div>
+        </div>
+      </div>
+
+      <!-- Cadena: contacto -->
+      <div class="cadena-box" id="cadena-box">
+        <h3>Plan Cadena</h3>
+        <p>El plan Cadena es para franquicias y negocios multi-local con necesidades específicas.<br>Te contactamos para armar tu propuesta a medida.</p>
+        <a href="mailto:sales@skanorder.com">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Escribir a sales@skanorder.com
+        </a>
+        <div class="or">o</div>
+        <button class="btn-sec" onclick="selectPlan('starter')">Comenzar con Starter</button>
+      </div>
+
+      <button class="btn-main" id="btn-next-plan" onclick="goStep2()">Continuar →</button>
+    </div>
+
+    <!-- STEP 2: CUENTA -->
+    <div id="step2" style="display:none;">
+      <h1 class="form-title">Crea tu cuenta</h1>
+      <p class="form-subtitle">Completá tus datos para empezar a usar Skanorder.</p>
+
+      <div class="plan-pill" id="plan-pill">🌱 Starter</div>
+
+      <div class="err-box" id="err-box"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Nombre completo *</label>
+          <input type="text" id="f-name" placeholder="Tu nombre" autocomplete="name">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="tel" id="f-phone" placeholder="+56 9 ..." autocomplete="tel">
+        </div>
+      </div>
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="f-email" placeholder="tu@email.com" autocomplete="email">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Contraseña *</label>
+          <input type="password" id="f-pass" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Confirmar contraseña *</label>
+          <input type="password" id="f-pass2" placeholder="Repetir contraseña" autocomplete="new-password">
+          <div class="hint err" id="pass-hint" style="display:none;">Las contraseñas no coinciden</div>
+        </div>
+      </div>
+
+      <button class="btn-main" id="btn-register" onclick="doRegister()">Crear mi cuenta →</button>
+      <button class="btn-sec" onclick="goStep1()">← Cambiar plan</button>
+
+      <p style="font-size:.75rem;color:var(--faint);text-align:center;margin-top:1.25rem;line-height:1.5;">
+        Al crear tu cuenta aceptás los <a href="#" style="color:var(--muted);">términos de servicio</a> y la <a href="#" style="color:var(--muted);">política de privacidad</a>.
+      </p>
+    </div>
+
+    <!-- STEP 3: ÉXITO -->
+    <div id="step3" style="display:none;">
+      <div class="success-wrap show">
+        <div class="success-icon">🎉</div>
+        <h2>¡Todo listo!</h2>
+        <p>Tu cuenta fue creada. Entrando a tu panel en un momento…</p>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <p style="font-size:.8rem;color:var(--faint);">Redirigiendo…</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="foot">
+  ¿Ya tenés cuenta? <a href="/admin">Iniciar sesión</a> · <a href="/">Volver al inicio</a>
+</footer>
+
+<script>
+const PLAN_LABELS={'starter':'🌱 Starter','negocio':'🏪 Negocio','cadena':'🏢 Cadena'};
+let selectedPlan='starter';
+
+// Init: leer ?plan= de la URL
+(()=>{
+  const p=new URLSearchParams(location.search).get('plan')||'starter';
+  selectPlan(p);
+  // Dark mode
+  const d=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+  document.documentElement.setAttribute('data-theme',d);
+  if(d==='dark'){
+    document.getElementById('logo-img').style.filter='brightness(0) invert(1)';
+  }
+})();
+
+function selectPlan(plan){
+  selectedPlan=plan;
+  document.querySelectorAll('.pcard').forEach(c=>{
+    c.classList.toggle('selected',c.dataset.plan===plan);
+  });
+  const cadenaBox=document.getElementById('cadena-box');
+  const btnNext=document.getElementById('btn-next-plan');
+  if(plan==='cadena'){
+    cadenaBox.classList.add('show');
+    btnNext.style.display='none';
+  } else {
+    cadenaBox.classList.remove('show');
+    btnNext.style.display='block';
+  }
+}
+
+function goStep2(){
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='block';
+  document.getElementById('sd1').className='step-dot done';
+  document.getElementById('sd1').innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+  document.getElementById('sl1').classList.add('done');
+  document.getElementById('sd2').className='step-dot active';
+  document.getElementById('plan-pill').textContent=PLAN_LABELS[selectedPlan];
+}
+
+function goStep1(){
+  document.getElementById('step2').style.display='none';
+  document.getElementById('step1').style.display='block';
+  document.getElementById('sd1').className='step-dot active';
+  document.getElementById('sd1').textContent='1';
+  document.getElementById('sl1').classList.remove('done');
+  document.getElementById('sd2').className='step-dot';
+}
+
+function showErr(msg){
+  const b=document.getElementById('err-box');
+  b.textContent=msg;b.classList.add('show');
+}
+function hideErr(){document.getElementById('err-box').classList.remove('show');}
+
+async function doRegister(){
+  hideErr();
+  const name=document.getElementById('f-name').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  const pass=document.getElementById('f-pass').value;
+  const pass2=document.getElementById('f-pass2').value;
+  const phone=document.getElementById('f-phone').value.trim()||null;
+
+  if(!name){showErr('Ingresá tu nombre completo.');return;}
+  if(!email){showErr('Ingresá tu email.');return;}
+  if(pass.length<8){showErr('La contraseña debe tener al menos 8 caracteres.');return;}
+  if(pass!==pass2){
+    document.getElementById('pass-hint').style.display='block';
+    showErr('Las contraseñas no coinciden.');return;
+  }
+  document.getElementById('pass-hint').style.display='none';
+
+  const btn=document.getElementById('btn-register');
+  btn.disabled=true;btn.textContent='Creando cuenta…';
+
+  try{
+    const r=await fetch('/auth/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,password:pass,phone,plan:selectedPlan})
+    });
+    const d=await r.json();
+    if(!r.ok){showErr(d.detail||'Error al crear la cuenta.');btn.disabled=false;btn.textContent='Crear mi cuenta →';return;}
+
+    // Guardar token y redirigir
+    localStorage.setItem('ph_ts',d.access_token);
+
+    // Mostrar step 3
+    document.getElementById('step2').style.display='none';
+    document.getElementById('step3').style.display='block';
+    document.getElementById('sd2').className='step-dot done';
+    document.getElementById('sd2').innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+    document.getElementById('sl2').classList.add('done');
+    document.getElementById('sd3').className='step-dot done';
+
+    setTimeout(()=>{
+      location.href=`/admin?welcome=1&plan=${selectedPlan}`;
+    },2200);
+
+  }catch(e){
+    showErr('Error de conexión. Intentá de nuevo.');
+    btn.disabled=false;btn.textContent='Crear mi cuenta →';
+  }
+}
+
+// Enter para avanzar
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(document.getElementById('step1').style.display!=='none'&&selectedPlan!=='cadena')goStep2();
+  else if(document.getElementById('step2').style.display!=='none')doRegister();
+});
+</script>
+</body>
+</html>
