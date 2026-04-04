@@ -4,7 +4,9 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 import enum
 
-DATABASE_URL = "sqlite:///./skanorder.db"
+import os
+_db_path = os.getenv("DATABASE_URL", "sqlite:///./skanorder.db")
+DATABASE_URL = _db_path
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
