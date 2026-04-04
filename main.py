@@ -77,27 +77,3 @@ def register_page(): return FileResponse("static/register/index.html")
 def admin(): return FileResponse("static/admin/index.html")
 @app.get("/",include_in_schema=False)
 def root(): return FileResponse("design/index.html")
-
-@app.post("/setup/superadmin",include_in_schema=False)
-def setup_superadmin(request:Request):
-    import os
-    from database import SessionLocal,User,UserRole,create_tables
-    from auth import hash_password
-    token=request.headers.get("X-Setup-Token","")
-    if token!=os.getenv("SETUP_TOKEN",""):
-        return JSONResponse({"error":"forbidden"},status_code=403)
-    create_tables()
-    db=SessionLocal()
-    u=db.query(User).filter(User.email=="admin@skanorder.com").first()
-    if not u:
-        u=User(name="Superadmin",email="admin@skanorder.com",
-               password_hash=hash_password("16210383-Cc"),
-               role=UserRole.superadmin,is_active=True)
-        db.add(u)
-        db.commit()
-        db.close()
-        return {"ok":True,"created":True}
-    u.role=UserRole.superadmin;u.is_active=True
-    u.password_hash=hash_password("16210383-Cc")
-    db.commit();db.close()
-    return {"ok":True,"updated":True}
