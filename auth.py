@@ -5,11 +5,12 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from database import get_db, User, UserRole
+from security import SECRET_KEY
 
-SECRET_KEY="phonorder-secret-2026-change-in-prod"
 ALGORITHM="HS256"
-ACCESS_MIN=480; REFRESH_DAYS=30
-pwd=CryptContext(schemes=["bcrypt"],deprecated="auto")
+ACCESS_MIN=60       # 1 hour (was 8h — reduced for security)
+REFRESH_DAYS=14     # 14 days (was 30)
+pwd=CryptContext(schemes=["bcrypt"],deprecated="auto",bcrypt__rounds=12)
 oauth2=OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def hash_password(p): return pwd.hash(p)

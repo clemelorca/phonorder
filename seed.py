@@ -10,7 +10,7 @@ for M in [Payment,OrderItem,Order,QRCode,StoreStaff,Product,Category,Store,User]
     db.query(M).delete()
 db.commit()
 
-su=User(name="Super Admin",email="super@phonorder.com",password_hash=hash_password("phonorder2026"),role=UserRole.superadmin)
+su=User(name="Super Admin",email="super@skanorder.com",password_hash=hash_password("skanorder2026"),role=UserRole.superadmin)
 admin=User(name="Claudia Moreno",email="admin@cafefondue.cl",password_hash=hash_password("admin1234"),role=UserRole.admin,phone="+56 9 8765 4321")
 db.add_all([su,admin]);db.commit()
 
@@ -80,7 +80,7 @@ db.commit()
 print("\n" + "="*55)
 print("  OK  Base de datos lista!")
 print("="*55)
-print(f"  Superadmin -> super@phonorder.com / phonorder2026")
+print(f"  Superadmin -> super@skanorder.com / skanorder2026")
 print(f"  Admin      -> admin@cafefondue.cl / admin1234")
 print(f"  Staff 1    -> staff1@cafefondue.cl / staff1234")
 print(f"  Staff 2    -> staff2@cafefondue.cl / staff1234")

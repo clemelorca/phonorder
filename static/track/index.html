@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estado de pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300..700&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme=light]{
+  --bg:#f7f6f2;--surface:#f9f8f5;--surface2:#fbfbf9;--surface-off:#f1eee9;
+  --border:rgba(40,37,29,.1);--divider:rgba(40,37,29,.07);
+  --text:#28251d;--muted:#7a7974;--faint:#bab9b4;
+  --primary:#01696f;--primary-h:#0c4e54;--primary-hl:#cedcd8;
+  --success:#437a22;--success-hl:#d4dfcc;
+  --orange:#da7101;--orange-hl:#e7d7c4;
+  --danger:#c0392b;--danger-hl:#f8d7d3;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07);
+  --shadow-md:0 4px 14px rgba(0,0,0,.09);
+  --shadow-lg:0 12px 36px rgba(0,0,0,.13);
+  --r-sm:.375rem;--r-md:.5rem;--r-lg:.75rem;--r-xl:1rem;--r-full:9999px;
+  --font-d:"Instrument Serif",Georgia,serif;
+  --font-b:"DM Sans","Helvetica Neue",sans-serif;
+}
+[data-theme=dark]{
+  --bg:#171614;--surface:#1c1b19;--surface2:#201f1d;--surface-off:#1d1c1a;
+  --border:rgba(255,255,255,.09);--divider:rgba(255,255,255,.05);
+  --text:#cdccca;--muted:#797876;--faint:#4a4947;
+  --primary:#4f98a3;--primary-h:#227f8b;--primary-hl:#273535;
+  --success:#6daa45;--success-hl:#2e3e28;
+  --orange:#fdab43;--orange-hl:#4a3c2b;
+  --danger:#e06c75;--danger-hl:#3d2426;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.25);
+  --shadow-md:0 4px 14px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 36px rgba(0,0,0,.5);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:var(--font-b);color:var(--text);background:var(--bg);min-height:100vh;}
+
+/* Header */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.hdr-brand{display:flex;align-items:center;gap:.6rem;}
+.hdr-icon{width:32px;height:32px;background:var(--primary);border-radius:.4rem;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.85rem;font-family:var(--font-d);}
+.hdr-title{font-family:var(--font-d);font-size:1.15rem;color:var(--text);}
+.hdr-sub{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;}
+.live-dot{width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Single / Search view */
+.single-wrap{max-width:460px;margin:2rem auto;padding:0 1rem;}
+
+/* Search */
+.search-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:2rem;box-shadow:var(--shadow-sm);}
+.search-title{font-family:var(--font-d);font-size:1.5rem;margin-bottom:.35rem;}
+.search-sub{font-size:.875rem;color:var(--muted);margin-bottom:1.5rem;}
+.search-input{width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:var(--r-lg);font-size:1.125rem;font-family:var(--font-b);background:var(--bg);color:var(--text);letter-spacing:.1em;text-transform:uppercase;outline:none;transition:border-color .15s;}
+.search-input::placeholder{text-transform:none;letter-spacing:0;font-size:.95rem;}
+.search-input:focus{border-color:var(--primary);}
+.search-btn{width:100%;margin-top:.75rem;padding:.85rem 1rem;background:var(--primary);color:#fff;border:none;border-radius:var(--r-lg);font-size:.95rem;font-weight:700;font-family:var(--font-b);cursor:pointer;transition:background .15s;}
+.search-btn:hover{background:var(--primary-h);}
+
+/* Order card */
+.order-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:1.75rem 1.5rem;box-shadow:var(--shadow-sm);}
+.order-code-big{font-family:var(--font-d);font-size:3rem;letter-spacing:.15em;text-align:center;color:var(--primary);line-height:1;}
+.order-code-lbl{text-align:center;font-size:.75rem;color:var(--muted);margin-top:.35rem;margin-bottom:1.75rem;}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:0;}
+.step-row{display:flex;align-items:flex-start;gap:.85rem;padding:.65rem 0;}
+.step-connector{width:2px;height:22px;margin-left:13px;background:var(--border);}
+.step-connector.done{background:var(--success);}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;margin-top:2px;}
+.step-dot.done{background:var(--success);color:#fff;}
+.step-dot.active{background:var(--orange);color:#fff;}
+.step-dot.pending{background:var(--surface-off);color:var(--faint);border:1px solid var(--border);}
+.step-label{font-size:.95rem;font-weight:600;line-height:1.3;}
+.step-label.pending{color:var(--faint);}
+.step-label.active{color:var(--orange);}
+.step-desc{font-size:.78rem;color:var(--muted);margin-top:.15rem;}
+
+.order-items{font-size:.8rem;color:var(--muted);margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--divider);}
+.order-total{text-align:center;font-size:1.05rem;font-weight:700;margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--divider);}
+.refresh-hint{text-align:center;font-size:.7rem;color:var(--faint);margin-top:.6rem;}
+
+.error-msg{text-align:center;padding:1.5rem;color:var(--danger);font-size:.875rem;}
+.spinner{text-align:center;padding:2.5rem;color:var(--muted);font-size:.875rem;}
+
+/* Board */
+.board{width:100%;height:calc(100vh - 57px);padding:1rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.board-col{display:flex;flex-direction:column;overflow:hidden;}
+.board-col-head{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;padding:.55rem .85rem;border-radius:var(--r-lg);flex-shrink:0;}
+.col-ad .board-col-head{background:var(--surface-off);color:var(--muted);}
+.col-prep .board-col-head{background:var(--orange-hl);color:var(--orange);}
+.col-ready .board-col-head{background:var(--success-hl);color:var(--success);}
+.col-orders{overflow-y:auto;flex:1;}
+.col-orders::-webkit-scrollbar{width:3px;}
+.col-orders::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* Ad panel */
+.ad-panel{background:var(--surface);border-radius:var(--r-xl);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--border);text-align:center;padding:1.5rem;gap:1rem;}
+.ad-logo{width:100%;max-height:160px;object-fit:contain;border-radius:var(--r-lg);}
+.ad-name{font-family:var(--font-d);font-size:1.5rem;color:var(--text);line-height:1.2;}
+.ad-desc{font-size:.825rem;color:var(--muted);line-height:1.55;}
+.ad-addr{font-size:.75rem;color:var(--faint);}
+.ad-placeholder{color:var(--faint);font-size:3rem;}
+
+/* Board order cards */
+.board-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:.9rem 1rem;box-shadow:var(--shadow-sm);margin-bottom:.6rem;}
+.board-card-code{font-family:var(--font-d);font-size:1.9rem;letter-spacing:.12em;color:var(--primary);line-height:1;}
+.board-card-name{font-size:.78rem;color:var(--muted);margin-top:.25rem;}
+.board-card-items{font-size:.75rem;color:var(--muted);margin-top:.5rem;line-height:1.65;}
+.board-card-time{font-size:.65rem;color:var(--faint);margin-top:.5rem;}
+.empty-col{text-align:center;color:var(--faint);font-size:.825rem;padding:1.5rem 1rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-brand">
+    <img src="/static/skanorder.svg" alt="Skanorder" style="height:36px;max-width:140px;opacity:.85">
+    <div>
+      <div class="hdr-title" id="pageTitle">Estado de pedidos</div>
+    </div>
+  </div>
+  <div class="hdr-sub" id="pageSubtitle"></div>
+</header>
+
+<div id="appContent"></div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const code=params.get('code');
+const storeId=params.get('store');
+
+const STEPS=[
+  {key:'confirmed',label:'Pedido confirmado',desc:'Tu pedido fue recibido',icon:'✅'},
+  {key:'preparing',label:'En preparación',desc:'Estamos preparando tu pedido',icon:'🔥'},
+  {key:'ready',label:'Listo para retirar',desc:'Pasa a buscar tu pedido al mesón',icon:'🔔'},
+  {key:'delivered',label:'Entregado',desc:'¡Buen provecho!',icon:'🎉'},
+];
+const ORDER_IDX={'confirmed':0,'preparing':1,'ready':2,'delivered':3};
+
+if(code){
+  document.getElementById('pageTitle').textContent='Tu pedido';
+  showSingleView();
+}else if(storeId){
+  document.getElementById('pageTitle').textContent='Pedidos en preparación';
+  document.getElementById('pageSubtitle').innerHTML='<span class="live-dot"></span>En vivo';
+  showBoardView();
+}else{
+  showSearchView();
+}
+
+function showSearchView(){
+  document.getElementById('appContent').innerHTML=`
+    <div class="single-wrap">
+      <div class="search-card">
+        <div class="search-title">Buscar pedido</div>
+        <div class="search-sub">Ingresa el código de 6 caracteres que recibiste al pagar.</div>
+        <input id="codeInput" class="search-input" type="text" maxlength="6" placeholder="Ej: AB1234" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')searchOrder()">
+        <button class="search-btn" onclick="searchOrder()">Buscar pedido</button>
+      </div>
+      <div id="searchResult" style="margin-top:1rem"></div>
+    </div>`;
+}
+
+async function searchOrder(){
+  const c=document.getElementById('codeInput').value.trim().toUpperCase();
+  if(!c)return;
+  const res=document.getElementById('searchResult');
+  res.innerHTML='<div class="spinner">Buscando...</div>';
+  try{
+    const r=await fetch(`/public/orders/${c}`);
+    if(!r.ok){res.innerHTML='<div class="order-card"><div class="error-msg">Pedido no encontrado</div></div>';return}
+    const order=await r.json();
+    res.innerHTML=`<div class="order-card">${renderSingleCard(order)}</div>`;
+  }catch{res.innerHTML='<div class="order-card"><div class="error-msg">Error al buscar</div></div>'}
+}
+
+async function showSingleView(){
+  document.getElementById('appContent').innerHTML=`<div class="single-wrap"><div class="spinner">Cargando...</div></div>`;
+  await loadSingle(code);
+  setInterval(()=>loadSingle(code),15000);
+}
+
+async function loadSingle(c){
+  try{
+    const r=await fetch(`/public/orders/${c}`);
+    if(!r.ok){document.getElementById('appContent').innerHTML='<div class="single-wrap"><div class="order-card"><div class="error-msg">Pedido no encontrado</div></div></div>';return}
+    const order=await r.json();
+    document.getElementById('appContent').innerHTML=`<div class="single-wrap"><div class="order-card">${renderSingleCard(order)}</div></div>`;
+  }catch{}
+}
+
+function renderSingleCard(order){
+  const idx=ORDER_IDX[order.status]??-1;
+  let stepsHtml='';
+  STEPS.forEach((s,i)=>{
+    const done=i<idx;const active=i===idx;
+    const dotCls=done?'done':active?'active':'pending';
+    stepsHtml+=`
+      ${i>0?`<div class="step-connector ${i<=idx?'done':''}"></div>`:''}
+      <div class="step-row">
+        <div class="step-dot ${dotCls}">${done?'✓':s.icon}</div>
+        <div>
+          <div class="step-label ${dotCls}">${s.label}</div>
+          ${active?`<div class="step-desc">${s.desc}</div>`:''}
+        </div>
+      </div>`;
+  });
+  const itemsList=order.items.map(it=>`${it.qty}× ${it.product.name}`).join(' · ');
+  return `
+    <div class="order-code-big">${order.order_code||'—'}</div>
+    <div class="order-code-lbl">Código de pedido${order.customer_name?` · ${order.customer_name}`:''}</div>
+    <div class="steps">${stepsHtml}</div>
+    ${itemsList?`<div class="order-items">${itemsList}</div>`:''}
+    <div class="order-total">Total: $${order.total.toLocaleString('es-CL')}</div>
+    <div class="refresh-hint">Se actualiza automáticamente cada 15 s</div>`;
+}
+
+let storeInfo={};
+
+async function showBoardView(){
+  document.getElementById('appContent').innerHTML=`<div style="padding:2.5rem;text-align:center;color:var(--muted)">Cargando...</div>`;
+  try{const r=await fetch(`/public/stores/${storeId}`);if(r.ok)storeInfo=await r.json();}catch{}
+  await loadBoard();
+  connectWS();
+}
+
+function connectWS(){
+  const proto=location.protocol==='https:'?'wss':'ws';
+  const ws=new WebSocket(`${proto}://${location.host}/ws/store/${storeId}`);
+  ws.onmessage=()=>loadBoard();
+  ws.onclose=()=>setTimeout(connectWS,3000);
+}
+
+async function loadBoard(){
+  try{
+    const r=await fetch(`/public/stores/${storeId}/board`);
+    if(!r.ok)return;
+    const orders=await r.json();
+    const confirmed=orders.filter(o=>o.status==='confirmed');
+    const preparing=orders.filter(o=>o.status==='preparing');
+    const ready=orders.filter(o=>o.status==='ready');
+    document.getElementById('appContent').innerHTML=`
+      <div class="board">
+        <div class="board-col col-ad">
+          <div class="board-col-head">🏪 ${storeInfo.name||'Nuestra tienda'}</div>
+          <div class="ad-panel">
+            ${storeInfo.promo_url && storeInfo.promo_type==='video'
+              ? `<video src="${storeInfo.promo_url}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-lg)"></video>`
+              : storeInfo.promo_url && storeInfo.promo_type==='image'
+              ? `<img src="${storeInfo.promo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-lg)" alt="promo">`
+              : `
+                ${storeInfo.logo?`<img class="ad-logo" src="${storeInfo.logo}" alt="logo">`:'<div class="ad-placeholder">🏪</div>'}
+                <div class="ad-name">${storeInfo.name||''}</div>
+                ${storeInfo.description?`<div class="ad-desc">${storeInfo.description}</div>`:''}
+                ${storeInfo.address?`<div class="ad-addr">📍 ${storeInfo.address}</div>`:''}
+              `
+            }
+          </div>
+        </div>
+        <div class="board-col col-prep">
+          <div class="board-col-head">🔥 En preparación (${confirmed.length+preparing.length})</div>
+          <div class="col-orders">
+            ${[...confirmed,...preparing].map(renderBoardCard).join('')||'<div class="empty-col">Sin pedidos en preparación</div>'}
+          </div>
+        </div>
+        <div class="board-col col-ready">
+          <div class="board-col-head">🔔 Listo para retirar (${ready.length})</div>
+          <div class="col-orders">
+            ${ready.map(renderBoardCard).join('')||'<div class="empty-col">Sin pedidos listos</div>'}
+          </div>
+        </div>
+      </div>`;
+  }catch{}
+}
+
+function renderBoardCard(order){
+  const items=order.items.map(it=>`${it.qty}× ${it.product.name}`).join('<br>');
+  const mins=Math.floor((Date.now()-new Date(order.updated_at+'Z').getTime())/60000);
+  return `
+    <div class="board-card">
+      <div class="board-card-code">${order.order_code||'—'}</div>
+      <div class="board-card-name">${order.customer_name||'Cliente'}</div>
+      <div class="board-card-items">${items}</div>
+      <div class="board-card-time">Hace ${mins} min</div>
+    </div>`;
+}
+</script>
+</body>
+</html>

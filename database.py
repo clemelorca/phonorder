@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 import enum
 
-DATABASE_URL = "sqlite:///./phonorder.db"
+DATABASE_URL = "sqlite:///./skanorder.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -25,8 +25,16 @@ class PaymentStatus(str, enum.Enum):
     pending="pending"; paid="paid"; failed="failed"; refunded="refunded"
 class PaymentMethod(str, enum.Enum):
     webpay="webpay"; mercadopago="mercadopago"; transfer="transfer"
+class QRType(str, enum.Enum):
+    table="table"; store="store"
 class Plan(str, enum.Enum):
     starter="starter"; negocio="negocio"; cadena="cadena"
+class SubStatus(str, enum.Enum):
+    active="active"; past_due="past_due"; cancelled="cancelled"; trial="trial"
+class GatewayType(str, enum.Enum):
+    mercadopago="mercadopago"; webpay="webpay"; getnet="getnet"
+class LeadStatus(str, enum.Enum):
+    pending="pending"; quoted="quoted"; accepted="accepted"; rejected="rejected"
 
 class User(Base):
     __tablename__ = "users"
@@ -49,6 +57,8 @@ class Store(Base):
     description=Column(Text)
     address=Column(String(255))
     logo_b64=Column(Text)
+    promo_media_url=Column(String(255))
+    promo_media_type=Column(String(10))  # 'image' | 'video'
     plan=Column(SAEnum(Plan),default=Plan.starter)
     is_active=Column(Boolean,default=True)
     created_at=Column(DateTime,default=datetime.utcnow)
@@ -99,6 +109,7 @@ class QRCode(Base):
     store_id=Column(Integer,ForeignKey("stores.id"),nullable=False)
     table_label=Column(String(60),nullable=False)
     token=Column(String(64),unique=True,index=True,nullable=False)
+    qr_type=Column(SAEnum(QRType),default=QRType.table)
     created_at=Column(DateTime,default=datetime.utcnow)
     store=relationship("Store",back_populates="qrcodes")
     orders=relationship("Order",back_populates="qr")
@@ -114,6 +125,8 @@ class Order(Base):
     status=Column(SAEnum(OrderStatus),default=OrderStatus.pending)
     payment_status=Column(SAEnum(PaymentStatus),default=PaymentStatus.pending)
     notes=Column(Text)
+    order_code=Column(String(20),unique=True,index=True,nullable=True)
+    order_qr_token=Column(String(64),unique=True,index=True,nullable=True)
     created_at=Column(DateTime,default=datetime.utcnow)
     updated_at=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     store=relationship("Store",back_populates="orders")
@@ -142,6 +155,56 @@ class Payment(Base):
     external_ref=Column(String(120))
     created_at=Column(DateTime,default=datetime.utcnow)
     order=relationship("Order",back_populates="payment")
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    id=Column(Integer,primary_key=True,index=True)
+    store_id=Column(Integer,ForeignKey("stores.id"),nullable=False,unique=True)
+    plan=Column(SAEnum(Plan),nullable=False,default=Plan.starter)
+    status=Column(SAEnum(SubStatus),default=SubStatus.trial)
+    price_monthly=Column(Float,nullable=False,default=0.0)
+    started_at=Column(DateTime,default=datetime.utcnow)
+    next_billing=Column(DateTime,nullable=True)
+    card_last4=Column(String(4),nullable=True)
+    card_brand=Column(String(20),nullable=True)
+    notes=Column(Text,nullable=True)
+    mp_preapproval_id=Column(String(120),nullable=True)   # MercadoPago preapproval ID
+    mp_preapproval_url=Column(Text,nullable=True)          # URL de autorización MP
+    store=relationship("Store",back_populates="subscription")
+
+class SystemConfig(Base):
+    __tablename__ = "system_config"
+    key=Column(String(100),primary_key=True)
+    value=Column(Text,nullable=True)
+
+# Add back-reference to Store
+Store.subscription=relationship("Subscription",back_populates="store",uselist=False)
+
+class StorePaymentConfig(Base):
+    __tablename__ = "store_payment_configs"
+    id=Column(Integer,primary_key=True,index=True)
+    store_id=Column(Integer,ForeignKey("stores.id"),nullable=False)
+    gateway=Column(SAEnum(GatewayType),nullable=False)
+    is_active=Column(Boolean,default=False)
+    credentials=Column(Text,nullable=True)  # JSON: gateway-specific keys
+    updated_at=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    store=relationship("Store",back_populates="payment_configs")
+
+Store.payment_configs=relationship("StorePaymentConfig",back_populates="store",cascade="all, delete-orphan")
+
+class SalesLead(Base):
+    __tablename__ = "sales_leads"
+    id=Column(Integer,primary_key=True,index=True)
+    store_id=Column(Integer,ForeignKey("stores.id"),nullable=False)
+    contact_name=Column(String(120),nullable=False)
+    contact_email=Column(String(200),nullable=False)
+    contact_phone=Column(String(30),nullable=True)
+    message=Column(Text,nullable=True)
+    status=Column(SAEnum(LeadStatus),default=LeadStatus.pending)
+    quoted_price=Column(Float,nullable=True)
+    created_at=Column(DateTime,default=datetime.utcnow)
+    updated_at=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    store=relationship("Store")
 
 def create_tables():
     Base.metadata.create_all(bind=engine)

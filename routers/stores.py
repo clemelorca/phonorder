@@ -1,8 +1,9 @@
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,UploadFile,File
 from database import get_db,Store,StoreStaff,UserRole
 from auth import require_admin,get_current_user
 from schemas import StoreCreate,StoreUpdate,StoreOut
 from typing import List
+import os,shutil
 
 router=APIRouter(prefix="/stores",tags=["stores"])
 
@@ -34,6 +35,39 @@ def update_store(sid:int,data:StoreUpdate,db=Depends(get_db),cu=Depends(require_
     if not s or not _ok(s,cu,db): raise HTTPException(404)
     for k,v in data.model_dump(exclude_none=True).items(): setattr(s,k,v)
     db.commit();db.refresh(s);return s
+
+@router.post("/{sid}/promo")
+async def upload_promo(sid:int,file:UploadFile=File(...),db=Depends(get_db),cu=Depends(require_admin)):
+    s=db.query(Store).filter(Store.id==sid).first()
+    if not s or (s.owner_id!=cu.id and cu.role!=UserRole.superadmin): raise HTTPException(403)
+    ct=file.content_type or ''
+    if ct.startswith('image/'): mtype='image'
+    elif ct.startswith('video/'): mtype='video'
+    else: raise HTTPException(400,"Solo se aceptan imágenes o videos")
+    ext=ct.split('/')[-1].split(';')[0].strip()
+    if ext=='jpeg': ext='jpg'
+    folder=f"static/media/stores/{sid}"
+    os.makedirs(folder,exist_ok=True)
+    # Borrar promo anterior si existe
+    for f2 in os.listdir(folder):
+        if f2.startswith('promo.'): os.remove(os.path.join(folder,f2))
+    path=f"{folder}/promo.{ext}"
+    with open(path,'wb') as out: shutil.copyfileobj(file.file,out)
+    s.promo_media_url=f"/static/media/stores/{sid}/promo.{ext}"
+    s.promo_media_type=mtype
+    db.commit();db.refresh(s)
+    return {"url":s.promo_media_url,"type":mtype}
+
+@router.delete("/{sid}/promo")
+def delete_promo(sid:int,db=Depends(get_db),cu=Depends(require_admin)):
+    s=db.query(Store).filter(Store.id==sid).first()
+    if not s or (s.owner_id!=cu.id and cu.role!=UserRole.superadmin): raise HTTPException(403)
+    folder=f"static/media/stores/{sid}"
+    if os.path.exists(folder):
+        for f2 in os.listdir(folder):
+            if f2.startswith('promo.'): os.remove(os.path.join(folder,f2))
+    s.promo_media_url=None;s.promo_media_type=None
+    db.commit();return {"ok":True}
 
 @router.delete("/{sid}")
 def del_store(sid:int,db=Depends(get_db),cu=Depends(require_admin)):

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skanorder – Pide con tu phone, retira en tienda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300..700&display=swap" rel="stylesheet">
+<style>
+
+:root,[data-theme=light]{
+  --bg:#f7f6f2;--surface:#f9f8f5;--surface2:#fbfbf9;--surface-off:#f1eee9;
+  --border:rgba(40,37,29,.1);--divider:rgba(40,37,29,.07);
+  --text:#28251d;--muted:#7a7974;--faint:#bab9b4;
+  --primary:#01696f;--primary-h:#0c4e54;--primary-hl:#cedcd8;
+  --success:#437a22;--success-hl:#d4dfcc;
+  --orange:#da7101;--orange-hl:#e7d7c4;
+  --danger:#c0392b;--danger-hl:#f8d7d3;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07);
+  --shadow-md:0 4px 14px rgba(0,0,0,.09);
+  --shadow-lg:0 12px 36px rgba(0,0,0,.13);
+  --r-sm:.375rem;--r-md:.5rem;--r-lg:.75rem;--r-xl:1rem;--r-full:9999px;
+  --font-d:"Instrument Serif",Georgia,serif;
+  --font-b:"DM Sans","Helvetica Neue",sans-serif;
+  --t-xs:clamp(.75rem,.7rem + .2vw,.875rem);
+  --t-sm:clamp(.875rem,.8rem + .3vw,1rem);
+  --t-base:clamp(1rem,.95rem + .2vw,1.125rem);
+  --t-lg:clamp(1.125rem,1rem + .6vw,1.5rem);
+  --t-xl:clamp(1.5rem,1.2rem + 1vw,2.25rem);
+  --t-2xl:clamp(2rem,1.2rem + 2vw,3.25rem);
+  --t-hero:clamp(2.5rem,1rem + 3.5vw,4.5rem);
+  --ease:180ms cubic-bezier(.16,1,.3,1);
+}
+[data-theme=dark]{
+  --bg:#171614;--surface:#1c1b19;--surface2:#201f1d;--surface-off:#1d1c1a;
+  --border:rgba(255,255,255,.09);--divider:rgba(255,255,255,.05);
+  --text:#cdccca;--muted:#797876;--faint:#4a4947;
+  --primary:#4f98a3;--primary-h:#227f8b;--primary-hl:#273535;
+  --success:#6daa45;--success-hl:#2e3e28;
+  --orange:#fdab43;--orange-hl:#4a3c2b;
+  --danger:#e06c75;--danger-hl:#3d2426;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.25);
+  --shadow-md:0 4px 14px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 36px rgba(0,0,0,.5);
+}
+
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
+body{font-family:var(--font-b);font-size:var(--t-base);color:var(--text);background:var(--bg);line-height:1.6;min-height:100dvh;}
+img{display:block;max-width:100%;}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit;}
+a{color:inherit;text-decoration:none;}
+ul{list-style:none;}
+input,select,textarea{font:inherit;}
+h1,h2,h3,h4{text-wrap:balance;line-height:1.15;}
+p,li{text-wrap:pretty;}
+:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:var(--r-sm);}
+
+/* ── UTILS ── */
+.container{max-width:960px;margin-inline:auto;padding-inline:1.5rem;}
+.container-wide{max-width:1200px;margin-inline:auto;padding-inline:1.5rem;}
+.divider{height:1px;background:var(--divider);margin-inline:1.5rem;}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(18px);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  border-bottom:1px solid var(--border);}
+.nav-in{max-width:1200px;margin-inline:auto;padding-inline:1.5rem;
+  height:62px;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.logo{display:flex;align-items:center;gap:.5rem;font-family:var(--font-d);
+  font-size:var(--t-lg);color:var(--text);}
+.logo-icon{width:32px;height:32px;background:var(--primary);border-radius:.5rem;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;}
+.nav-links{display:flex;gap:1.75rem;align-items:center;}
+.nav-links a{font-size:var(--t-sm);color:var(--muted);transition:color var(--ease);}
+.nav-links a:hover{color:var(--text);}
+.nav-cta{padding:.5rem 1.25rem;background:var(--primary);color:#fff;border-radius:var(--r-full);
+  font-size:var(--t-sm);font-weight:600;transition:background var(--ease),box-shadow var(--ease);}
+.nav-cta:hover{background:var(--primary-h);box-shadow:var(--shadow-md);}
+.theme-btn{width:36px;height:36px;border-radius:var(--r-full);display:flex;align-items:center;
+  justify-content:center;color:var(--muted);transition:background var(--ease);}
+.theme-btn:hover{background:var(--surface-off);}
+
+/* ── HERO ── */
+.hero{padding:clamp(5rem,12vw,8rem) 1.5rem clamp(4rem,8vw,6rem);}
+.hero-in{max-width:960px;margin-inline:auto;display:grid;grid-template-columns:1.1fr 0.9fr;
+  gap:3.5rem;align-items:center;}
+.badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--primary-hl);
+  color:var(--primary);border-radius:var(--r-full);padding:.25rem 1rem;
+  font-size:var(--t-xs);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:1.25rem;}
+.hero h1{font-family:var(--font-d);font-size:var(--t-hero);line-height:1.04;
+  color:var(--text);margin-bottom:1.25rem;}
+.hero h1 em{font-style:italic;color:var(--primary);}
+.hero-sub{font-size:var(--t-lg);color:var(--muted);max-width:46ch;margin-bottom:2.25rem;line-height:1.5;}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;}
+.btn-p{padding:.85rem 2rem;background:var(--primary);color:#fff;border-radius:var(--r-full);
+  font-size:var(--t-sm);font-weight:700;box-shadow:var(--shadow-md);transition:background var(--ease),box-shadow var(--ease);}
+.btn-p:hover{background:var(--primary-h);box-shadow:var(--shadow-lg);}
+.btn-g{padding:.85rem 1.5rem;border:1.5px solid var(--border);color:var(--muted);
+  border-radius:var(--r-full);font-size:var(--t-sm);font-weight:500;transition:border-color var(--ease),color var(--ease);}
+.btn-g:hover{color:var(--text);border-color:var(--muted);}
+
+/* PHONE MOCKUP */
+.mockup-wrap{position:relative;display:flex;justify-content:center;}
+.mockup-float{position:absolute;top:-14px;right:4px;background:var(--success);color:#fff;
+  border-radius:var(--r-full);padding:.2rem .85rem;font-size:var(--t-xs);font-weight:700;
+  box-shadow:var(--shadow-md);white-space:nowrap;}
+.phone{background:var(--surface);border-radius:2.25rem;border:5px solid var(--border);
+  box-shadow:var(--shadow-lg);width:240px;overflow:hidden;}
+.p-screen{padding:1.5rem 1.25rem;}
+.p-store{font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);text-align:center;margin-bottom:.75rem;}
+.p-qr{background:var(--bg);border-radius:var(--r-lg);padding:1.25rem;text-align:center;
+  border:1px solid var(--divider);margin-bottom:1rem;}
+.qr-svg{width:96px;height:96px;margin:0 auto .5rem;}
+.p-menu{display:flex;flex-direction:column;gap:.5rem;}
+.p-item{display:flex;justify-content:space-between;align-items:center;
+  background:var(--surface-off);border-radius:var(--r-md);padding:.5rem .75rem;font-size:var(--t-xs);}
+.p-item-name{font-weight:500;}
+.p-item-price{color:var(--primary);font-weight:700;}
+.p-add{width:20px;height:20px;background:var(--primary);color:#fff;border-radius:var(--r-full);
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;}
+.p-pay{margin-top:1rem;width:100%;padding:.6rem;background:var(--primary);color:#fff;
+  border-radius:var(--r-full);font-size:var(--t-xs);font-weight:700;text-align:center;}
+
+/* ── STATS BAR ── */
+.stats{background:var(--surface);border-top:1px solid var(--divider);border-bottom:1px solid var(--divider);}
+.stats-in{max-width:960px;margin-inline:auto;padding:2rem 1.5rem;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.stat{text-align:center;}
+.stat-val{font-family:var(--font-d);font-size:var(--t-xl);color:var(--text);line-height:1;}
+.stat-label{font-size:var(--t-xs);color:var(--muted);margin-top:.25rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+
+/* ── HOW ── */
+.how{padding:clamp(4rem,8vw,7rem) 1.5rem;}
+.sec-label{font-size:var(--t-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--primary);margin-bottom:.5rem;}
+.sec-title{font-family:var(--font-d);font-size:var(--t-2xl);line-height:1.1;
+  color:var(--text);margin-bottom:1rem;}
+.sec-desc{font-size:var(--t-lg);color:var(--muted);max-width:50ch;line-height:1.5;}
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(210px,100%),1fr));
+  gap:1.25rem;margin-top:3rem;}
+.step{background:var(--surface);border-radius:var(--r-xl);padding:2rem;
+  border:1px solid var(--border);box-shadow:var(--shadow-sm);
+  transition:transform var(--ease),box-shadow var(--ease);}
+.step:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+.step-n{width:42px;height:42px;border-radius:var(--r-full);background:var(--primary-hl);
+  color:var(--primary);display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:var(--t-base);margin-bottom:1.25rem;}
+.step h3{font-size:var(--t-base);font-weight:700;margin-bottom:.5rem;}
+.step p{font-size:var(--t-sm);color:var(--muted);line-height:1.6;}
+
+/* ── FEATURES BENTO ── */
+.features{padding:clamp(4rem,8vw,7rem) 1.5rem;background:var(--surface);}
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:3rem;}
+.bcard{border-radius:var(--r-xl);padding:2rem;border:1px solid var(--border);}
+.bcard.big{grid-column:span 2;background:var(--primary);color:#fff;}
+.bcard.big h3{font-family:var(--font-d);font-size:var(--t-xl);color:#fff;margin-bottom:.75rem;}
+.bcard.big p{color:rgba(255,255,255,.72);max-width:58ch;}
+.bcard.bg1{background:var(--bg);}
+.bcard.bg2{background:var(--surface-off);}
+.bcard-icon{width:44px;height:44px;border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;}
+.bcard h3{font-size:var(--t-base);font-weight:700;margin-bottom:.4rem;}
+.bcard p{font-size:var(--t-sm);color:var(--muted);line-height:1.6;}
+.tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1.25rem;}
+.tag{padding:.15rem .75rem;border-radius:var(--r-full);font-size:var(--t-xs);font-weight:600;}
+.tag-w{background:rgba(255,255,255,.18);color:#fff;}
+.tag-p{background:var(--primary-hl);color:var(--primary);}
+
+/* ── PRICING ── */
+.pricing{padding:clamp(4rem,8vw,7rem) 1.5rem;}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));
+  gap:1.25rem;margin-top:3rem;}
+.pcard{background:var(--surface);border-radius:var(--r-xl);padding:2rem;
+  border:1px solid var(--border);box-shadow:var(--shadow-sm);}
+.pcard.hot{background:var(--primary);color:#fff;box-shadow:var(--shadow-lg);}
+.pcard h3{font-size:var(--t-base);font-weight:700;margin-bottom:.75rem;}
+.pcard .price{font-family:var(--font-d);font-size:var(--t-2xl);line-height:1;}
+.pcard .period{font-size:var(--t-xs);color:var(--muted);margin-bottom:1.5rem;}
+.pcard.hot .period{color:rgba(255,255,255,.6);}
+.pcard ul{display:flex;flex-direction:column;gap:.75rem;}
+.pcard li{display:flex;gap:.6rem;align-items:flex-start;font-size:var(--t-sm);color:var(--muted);}
+.pcard.hot li{color:rgba(255,255,255,.8);}
+.chk{width:20px;height:20px;min-width:20px;background:var(--success-hl);color:var(--success);
+  border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;margin-top:2px;}
+.pcard.hot .chk{background:rgba(255,255,255,.2);color:#fff;}
+.pcard-cta{display:block;margin-top:1.75rem;text-align:center;padding:.7rem;
+  border-radius:var(--r-full);font-size:var(--t-sm);font-weight:700;
+  border:1.5px solid var(--border);color:var(--text);transition:background var(--ease),border-color var(--ease);}
+.pcard-cta:hover{background:var(--surface-off);}
+.pcard.hot .pcard-cta{background:#fff;color:var(--primary);border-color:transparent;}
+.pcard.hot .pcard-cta:hover{background:var(--primary-hl);}
+
+/* ── CTA FOOTER ── */
+.cta-sec{padding:clamp(4rem,8vw,7rem) 1.5rem;}
+.cta-box{background:var(--primary);border-radius:2rem;padding:clamp(3rem,6vw,5rem);
+  text-align:center;max-width:680px;margin-inline:auto;}
+.cta-box h2{font-family:var(--font-d);font-size:var(--t-2xl);color:#fff;margin-bottom:1.25rem;}
+.cta-box p{color:rgba(255,255,255,.72);margin-bottom:2rem;margin-inline:auto;max-width:44ch;}
+.btn-white{padding:.85rem 2.25rem;background:#fff;color:var(--primary);border-radius:var(--r-full);
+  font-size:var(--t-sm);font-weight:700;box-shadow:var(--shadow-lg);transition:background var(--ease);}
+.btn-white:hover{background:var(--primary-hl);}
+
+/* ── FOOTER ── */
+footer{padding:1.75rem 1.5rem;border-top:1px solid var(--divider);}
+.foot-in{max-width:1200px;margin-inline:auto;display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:1rem;}
+footer p{font-size:var(--t-xs);color:var(--faint);}
+
+/* ── MOBILE MENU ── */
+.menu-btn{display:none;width:36px;height:36px;border-radius:var(--r-full);align-items:center;justify-content:center;color:var(--muted);transition:background var(--ease);cursor:pointer;border:none;background:transparent;}
+.menu-btn:hover{background:var(--surface-off);}
+.mobile-menu{display:none;position:fixed;inset:0;top:62px;background:color-mix(in srgb,var(--bg) 97%,transparent);backdrop-filter:blur(18px);z-index:99;padding:1.5rem;border-top:1px solid var(--border);}
+.mobile-menu.open{display:flex;flex-direction:column;gap:.25rem;}
+.mobile-menu a{font-size:1.05rem;color:var(--text);padding:.85rem 1rem;border-radius:var(--r-lg);transition:background var(--ease);text-decoration:none;}
+.mobile-menu a:hover{background:var(--surface-off);}
+.mobile-menu .mob-cta{margin-top:.5rem;background:var(--primary);color:#fff;text-align:center;font-weight:700;border-radius:var(--r-full);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hero-in{grid-template-columns:1fr;text-align:center;}
+  .mockup-wrap{justify-content:center;order:-1;}
+  .hero-btns{justify-content:center;}
+  .hero-sub{margin-inline:auto;}
+  .stats-in{grid-template-columns:repeat(2,1fr);}
+  .bento{grid-template-columns:1fr;}
+  .bcard.big{grid-column:span 1;}
+  .nav-links{display:none;}
+  .logo img{height:32px;max-width:140px;}
+  .nav-cta{padding:.45rem .9rem;font-size:.75rem;}
+  .menu-btn{display:flex;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <div class="logo">
+      <img src="skanorder.svg" alt="Skanorder" style="height:50px;max-width:200px;width:auto">
+    </div>
+    <div class="nav-links">
+      <a href="#how">Cómo funciona</a>
+      <a href="#features">Funciones</a>
+      <a href="#pricing">Precios</a>
+      <a href="admin.html">Demo Admin</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.6rem;">
+      <button class="theme-btn" data-tt aria-label="Tema"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="menu-btn" id="menu-btn" aria-label="Menú" onclick="toggleMenu()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#how" onclick="closeMenu()">Cómo funciona</a>
+  <a href="#features" onclick="closeMenu()">Funciones</a>
+  <a href="#pricing" onclick="closeMenu()">Precios</a>
+  <a href="admin.html" onclick="closeMenu()">Demo Admin</a>
+  <a href="admin.html" class="mob-cta">Entrar al panel</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-in">
+    <div>
+      <div class="badge">
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
+        SaaS · Pedidos QR para tiendas
+      </div>
+      <h1>Pide con tu <em>phone</em>,<br>retira en tienda</h1>
+      <p class="hero-sub">Sin filas, sin apps, sin complicaciones. El cliente escanea el QR de tu local, elige, paga y retira. Tú recibes todo en tu panel.</p>
+      <div class="hero-btns">
+        <a href="admin.html" class="btn-p">Ver demo del panel →</a>
+        <a href="order.html" class="btn-g">Vista del cliente</a>
+      </div>
+    </div>
+    <div class="mockup-wrap">
+      <div class="mockup-float">✓ Listo para retirar</div>
+      <div class="phone">
+        <div class="p-screen">
+          <p class="p-store">Cafetería Central</p>
+          <div class="p-qr">
+            <svg class="qr-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="5" width="28" height="28" rx="2" fill="var(--text)"/>
+              <rect x="9" y="9" width="20" height="20" rx="1" fill="var(--bg)"/>
+              <rect x="13" y="13" width="12" height="12" fill="var(--text)"/>
+              <rect x="47" y="5" width="28" height="28" rx="2" fill="var(--text)"/>
+              <rect x="51" y="9" width="20" height="20" rx="1" fill="var(--bg)"/>
+              <rect x="55" y="13" width="12" height="12" fill="var(--text)"/>
+              <rect x="5" y="47" width="28" height="28" rx="2" fill="var(--text)"/>
+              <rect x="9" y="51" width="20" height="20" rx="1" fill="var(--bg)"/>
+              <rect x="13" y="55" width="12" height="12" fill="var(--text)"/>
+              <rect x="40" y="40" width="6" height="6" fill="var(--text)"/>
+              <rect x="50" y="40" width="6" height="6" fill="var(--text)"/>
+              <rect x="60" y="40" width="6" height="6" fill="var(--text)"/>
+              <rect x="70" y="40" width="6" height="6" fill="var(--text)"/>
+              <rect x="40" y="50" width="6" height="6" fill="var(--text)"/>
+              <rect x="60" y="50" width="6" height="6" fill="var(--text)"/>
+              <rect x="40" y="60" width="6" height="6" fill="var(--text)"/>
+              <rect x="50" y="60" width="6" height="6" fill="var(--text)"/>
+              <rect x="70" y="60" width="6" height="6" fill="var(--text)"/>
+              <rect x="40" y="70" width="6" height="6" fill="var(--text)"/>
+              <rect x="60" y="70" width="6" height="6" fill="var(--text)"/>
+              <rect x="70" y="70" width="6" height="6" fill="var(--text)"/>
+            </svg>
+            <p style="font-size:var(--t-xs);color:var(--muted);">Escanea para pedir</p>
+          </div>
+          <div class="p-menu">
+            <div class="p-item"><span class="p-item-name">Café latte</span><span class="p-item-price">$2.500</span><div class="p-add">+</div></div>
+            <div class="p-item"><span class="p-item-name">Tostado jamón</span><span class="p-item-price">$3.800</span><div class="p-add">+</div></div>
+            <div class="p-item"><span class="p-item-name">Jugo naranja</span><span class="p-item-price">$2.200</span><div class="p-add">+</div></div>
+          </div>
+          <div class="p-pay">Pagar · $8.500</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-in">
+    <div class="stat"><div class="stat-val">+300K</div><div class="stat-label">Tiendas en Chile</div></div>
+    <div class="stat"><div class="stat-val">0%</div><div class="stat-label">App que instalar</div></div>
+    <div class="stat"><div class="stat-val">3 min</div><div class="stat-label">Setup inicial</div></div>
+    <div class="stat"><div class="stat-val">2 fuentes</div><div class="stat-label">de ingreso (SaaS + comisión)</div></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- HOW -->
+<section class="how" id="how">
+  <div class="container">
+    <p class="sec-label">Flujo del producto</p>
+    <h2 class="sec-title">Cuatro pasos, cero fricción</h2>
+    <p class="sec-desc">El cliente nunca descarga nada. La tienda no necesita hardware extra.</p>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><h3>Escanea el QR</h3><p>QR único por mesa, mostrador o punto de venta. Generado automáticamente desde el panel.</p></div>
+      <div class="step"><div class="step-n">2</div><h3>Elige del menú</h3><p>Web app sin instalación. Fotos, descripciones y opciones de personalización por producto.</p></div>
+      <div class="step"><div class="step-n">3</div><h3>Paga en línea</h3><p>Webpay, MercadoPago o transferencia. Confirmación instantánea con comprobante digital.</p></div>
+      <div class="step"><div class="step-n">4</div><h3>Retira el pedido</h3><p>La tienda ve la orden en pantalla. El cliente sigue el estado en tiempo real y retira cuando está listo.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container-wide">
+    <p class="sec-label">Funciones</p>
+    <h2 class="sec-title">Todo lo que necesita<br>tu tienda</h2>
+    <div class="bento">
+      <div class="bcard big">
+        <h3>Panel de administración en tiempo real</h3>
+        <p>Gestiona tu catálogo, visualiza pedidos al instante, activa/desactiva productos y descarga reportes de ventas — desde cualquier dispositivo.</p>
+        <div class="tags">
+          <span class="tag tag-w">Dashboard en vivo</span>
+          <span class="tag tag-w">Gestión de catálogo</span>
+          <span class="tag tag-w">Reportes CSV</span>
+          <span class="tag tag-w">Multi-local</span>
+        </div>
+      </div>
+      <div class="bcard bg1">
+        <div class="bcard-icon" style="background:var(--primary-hl)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <h3>QR dinámico por punto de venta</h3>
+        <p>Genera, imprime o muestra QRs únicos. Actualización del menú sin reimprimir.</p>
+      </div>
+      <div class="bcard bg2">
+        <div class="bcard-icon" style="background:var(--success-hl)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.3a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.1a16 16 0 0 0 6 6l1.96-1.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <h3>Notificaciones de estado</h3>
+        <p>El cliente ve: recibido → preparando → listo. Opcional vía WhatsApp o SMS.</p>
+      </div>
+      <div class="bcard bg1">
+        <div class="bcard-icon" style="background:var(--orange-hl)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </div>
+        <h3>Pagos integrados desde día 1</h3>
+        <p>Webpay y MercadoPago. Sin intermediarios extra. Liquidación directa al comercio.</p>
+      </div>
+      <div class="bcard bg2">
+        <div class="bcard-icon" style="background:var(--primary-hl)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>Analytics y reportes</h3>
+        <p>Ventas por hora, día y producto. Exportación en CSV. Identifica tus top sellers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PAYMENTS -->
+<section style="padding:clamp(4rem,8vw,7rem) 1.5rem;">
+  <div class="container">
+    <p class="sec-label">Pagos</p>
+    <h2 class="sec-title">Conecta tu pasarela favorita</h2>
+    <p class="sec-desc">Acepta pagos online desde el primer día. Sin intermediarios extra — la liquidación va directo a tu comercio.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:1.25rem;margin-top:3rem;">
+
+      <!-- MercadoPago -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:2rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:1rem;">
+        <div style="width:48px;height:48px;border-radius:var(--r-lg);background:#fff7e0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">🟡</div>
+        <div>
+          <div style="font-weight:700;font-size:var(--t-base);margin-bottom:.35rem;">MercadoPago</div>
+          <div style="font-size:var(--t-sm);color:var(--muted);line-height:1.55;">Tarjetas de crédito, débito y billetera digital. El medio de pago más usado en Chile y Latinoamérica.</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto;">
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Visa</span>
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Mastercard</span>
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Billetera MP</span>
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Cuotas</span>
+        </div>
+      </div>
+
+      <!-- Webpay -->
+      <div style="background:var(--surface);border:2px solid var(--primary);border-radius:var(--r-xl);padding:2rem;box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:1rem;position:relative;">
+        <div style="position:absolute;top:-1px;right:1.25rem;background:var(--primary);color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .7rem;border-radius:0 0 var(--r-md) var(--r-md);letter-spacing:.04em;">MÁS USADO EN CHILE</div>
+        <div style="width:48px;height:48px;border-radius:var(--r-lg);background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">🔵</div>
+        <div>
+          <div style="font-weight:700;font-size:var(--t-base);margin-bottom:.35rem;">Webpay <span style="color:var(--muted);font-weight:400;">by Transbank</span></div>
+          <div style="font-size:var(--t-sm);color:var(--muted);line-height:1.55;">La pasarela oficial de Transbank. Acepta débito Redcompra, crédito y prepago de todos los bancos chilenos.</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto;">
+          <span style="background:var(--primary-hl);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--primary);">Redcompra</span>
+          <span style="background:var(--primary-hl);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--primary);">Crédito</span>
+          <span style="background:var(--primary-hl);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--primary);">Prepago</span>
+          <span style="background:var(--primary-hl);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--primary);">Sin cuotas extra</span>
+        </div>
+      </div>
+
+      <!-- Getnet -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:2rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:1rem;">
+        <div style="width:48px;height:48px;border-radius:var(--r-lg);background:#fce8e8;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">🔴</div>
+        <div>
+          <div style="font-weight:700;font-size:var(--t-base);margin-bottom:.35rem;">Getnet <span style="color:var(--muted);font-weight:400;">by Santander</span></div>
+          <div style="font-size:var(--t-sm);color:var(--muted);line-height:1.55;">Solución de pagos del Banco Santander Chile. Ideal para comercios con cuenta Santander o que buscan diversificar.</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto;">
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Visa</span>
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Mastercard</span>
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Débito</span>
+          <span style="background:var(--surface-off);border-radius:var(--r-full);padding:.2rem .65rem;font-size:.7rem;font-weight:600;color:var(--muted);">Santander</span>
+        </div>
+      </div>
+
+    </div>
+    <p style="text-align:center;font-size:var(--t-xs);color:var(--faint);margin-top:2rem;">Sin configurar ninguna pasarela el sistema opera en modo demo — ideal para empezar sin cobro online.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <p class="sec-label">Planes</p>
+    <h2 class="sec-title">Simple y transparente</h2>
+    <p class="sec-desc">SaaS mensual + una pequeña comisión por cada venta procesada.</p>
+    <div class="pricing-grid">
+      <div class="pcard">
+        <h3>Starter</h3>
+        <div class="price">$49.990</div>
+        <p class="period">por mes · 1 local</p>
+        <ul>
+          <li><span class="chk">✓</span>Hasta 300 pedidos/mes</li>
+          <li><span class="chk">✓</span>1 QR activo</li>
+          <li><span class="chk">✓</span>Panel básico</li>
+          <li><span class="chk">✓</span>2% comisión</li>
+          <li><span class="chk">✓</span>Soporte email</li>
+        </ul>
+        <a href="admin.html" class="pcard-cta">Empezar gratis</a>
+      </div>
+      <div class="pcard hot">
+        <h3>Negocio ⭐</h3>
+        <div class="price">$99.990</div>
+        <p class="period">por mes · hasta 3 locales</p>
+        <ul>
+          <li><span class="chk">✓</span>Pedidos ilimitados</li>
+          <li><span class="chk">✓</span>QRs ilimitados</li>
+          <li><span class="chk">✓</span>Notif. WhatsApp</li>
+          <li><span class="chk">✓</span>1,5% comisión</li>
+          <li><span class="chk">✓</span>Soporte prioritario</li>
+          <li><span class="chk">✓</span>Reportes avanzados</li>
+        </ul>
+        <a href="admin.html" class="pcard-cta">Comenzar ahora</a>
+      </div>
+      <div class="pcard">
+        <h3>Cadena</h3>
+        <div class="price">A medida</div>
+        <p class="period">franquicias &amp; multi-local</p>
+        <ul>
+          <li><span class="chk">✓</span>Locales ilimitados</li>
+          <li><span class="chk">✓</span>White-label</li>
+          <li><span class="chk">✓</span>API + integraciones</li>
+          <li><span class="chk">✓</span>Comisión negociada</li>
+          <li><span class="chk">✓</span>Account manager</li>
+        </ul>
+        <a href="#" class="pcard-cta">Contactar ventas</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec">
+  <div class="cta-box">
+    <h2>¿Listo para digitalizar tu tienda?</h2>
+    <p>Empieza hoy. Sin tarjeta de crédito. Configura tu local en menos de 3 minutos.</p>
+    <a href="admin.html" class="btn-white">Ver demo del panel →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-in">
+    <div class="logo">
+      <img src="skanorder.svg" alt="Skanorder" style="height:22px;max-width:130px;opacity:.7">
+    </div>
+    <p>skanorder.com · Santiago, Chile · 2026</p>
+  </div>
+</footer>
+
+<script>
+(()=>{
+  const b=document.querySelector('[data-tt]'),r=document.documentElement;
+  let d=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+  r.setAttribute('data-theme',d);
+  const sun=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+  const moon=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  if(b){ b.innerHTML=d==='dark'?sun:moon; b.onclick=()=>{d=d==='dark'?'light':'dark';r.setAttribute('data-theme',d);b.innerHTML=d==='dark'?sun:moon;}; }
+})();
+
+function toggleMenu(){
+  const m=document.getElementById('mobile-menu');
+  const open=m.classList.toggle('open');
+  document.getElementById('menu-btn').innerHTML=open
+    ?`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+    :`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;
+}
+function closeMenu(){document.getElementById('mobile-menu').classList.remove('open');document.getElementById('menu-btn').innerHTML=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;}
+</script>
+</body>
+</html>

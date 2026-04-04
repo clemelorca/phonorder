@@ -1,7 +1,10 @@
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel,EmailStr,field_validator
 from typing import Optional,List
 from datetime import datetime
 from enum import Enum
+
+# Max base64 image size: 5 MB encoded ≈ ~6.7 MB string
+_MAX_IMG_B64 = 7_000_000
 
 class UserRole(str,Enum):
     superadmin="superadmin";admin="admin";staff="staff"
@@ -12,6 +15,8 @@ class OrderStatus(str,Enum):
     ready="ready";delivered="delivered";cancelled="cancelled"
 class PaymentStatus(str,Enum):
     pending="pending";paid="paid";failed="failed";refunded="refunded"
+class QRType(str,Enum):
+    table="table";store="store"
 class Plan(str,Enum):
     starter="starter";negocio="negocio";cadena="cadena"
 
@@ -19,7 +24,7 @@ class LoginRequest(BaseModel):
     email:EmailStr;password:str
 class TokenResponse(BaseModel):
     access_token:str;refresh_token:str;token_type:str="bearer"
-    user_id:int;role:str;name:str
+    user_id:int;role:str;name:str;staff_role:Optional[str]=None
 class RefreshRequest(BaseModel):
     refresh_token:str
 
@@ -27,7 +32,7 @@ class UserCreate(BaseModel):
     name:str;email:EmailStr;password:str
     role:UserRole=UserRole.admin;phone:Optional[str]=None
 class UserUpdate(BaseModel):
-    name:Optional[str]=None;phone:Optional[str]=None;is_active:Optional[bool]=None
+    name:Optional[str]=None;phone:Optional[str]=None;is_active:Optional[bool]=None;password:Optional[str]=None
 class UserOut(BaseModel):
     id:int;name:str;email:str;role:UserRole
     phone:Optional[str];is_active:bool;created_at:datetime
@@ -36,12 +41,23 @@ class UserOut(BaseModel):
 class StoreCreate(BaseModel):
     name:str;description:Optional[str]=None;address:Optional[str]=None
     logo_b64:Optional[str]=None;plan:Plan=Plan.starter
+    @field_validator('logo_b64')
+    @classmethod
+    def _chk_logo(cls,v):
+        if v and len(v)>_MAX_IMG_B64: raise ValueError('Imagen demasiado grande (máx 5 MB)')
+        return v
 class StoreUpdate(BaseModel):
     name:Optional[str]=None;description:Optional[str]=None;address:Optional[str]=None
     logo_b64:Optional[str]=None;plan:Optional[Plan]=None;is_active:Optional[bool]=None
+    @field_validator('logo_b64')
+    @classmethod
+    def _chk_logo(cls,v):
+        if v and len(v)>_MAX_IMG_B64: raise ValueError('Imagen demasiado grande (máx 5 MB)')
+        return v
 class StoreOut(BaseModel):
     id:int;owner_id:int;name:str;description:Optional[str]
     address:Optional[str];logo_b64:Optional[str];plan:Plan
+    promo_media_url:Optional[str]=None;promo_media_type:Optional[str]=None
     is_active:bool;created_at:datetime
     model_config={"from_attributes":True}
 
@@ -61,19 +77,32 @@ class CategoryOut(BaseModel):
 class ProductCreate(BaseModel):
     name:str;description:Optional[str]=None;price:float;stock:int=-1
     category_id:Optional[int]=None;image_b64:Optional[str]=None;is_active:bool=True
+    @field_validator('image_b64')
+    @classmethod
+    def _chk_img(cls,v):
+        if v and len(v)>_MAX_IMG_B64: raise ValueError('Imagen demasiado grande (máx 5 MB)')
+        return v
 class ProductUpdate(BaseModel):
     name:Optional[str]=None;description:Optional[str]=None;price:Optional[float]=None
     stock:Optional[int]=None;category_id:Optional[int]=None
     image_b64:Optional[str]=None;is_active:Optional[bool]=None
+    @field_validator('image_b64')
+    @classmethod
+    def _chk_img(cls,v):
+        if v and len(v)>_MAX_IMG_B64: raise ValueError('Imagen demasiado grande (máx 5 MB)')
+        return v
 class ProductOut(BaseModel):
     id:int;store_id:int;category_id:Optional[int];name:str
     description:Optional[str];price:float;stock:int;is_active:bool;image_b64:Optional[str]
     model_config={"from_attributes":True}
 
 class QRCreate(BaseModel):
-    table_label:str
+    table_label:str;qr_type:QRType=QRType.table
+class QRSimple(BaseModel):
+    id:int;qr_type:QRType;table_label:str
+    model_config={"from_attributes":True}
 class QROut(BaseModel):
-    id:int;store_id:int;table_label:str;token:str;created_at:datetime
+    id:int;store_id:int;table_label:str;token:str;qr_type:QRType;created_at:datetime
     qr_image_b64:Optional[str]=None
     model_config={"from_attributes":True}
 
@@ -88,7 +117,14 @@ class OrderItemOut(BaseModel):
 class OrderOut(BaseModel):
     id:int;store_id:int;customer_name:Optional[str];customer_phone:Optional[str]
     total:float;status:OrderStatus;payment_status:PaymentStatus
-    notes:Optional[str];created_at:datetime;updated_at:datetime;items:List[OrderItemOut]=[]
+    notes:Optional[str];order_code:Optional[str];order_qr_token:Optional[str]
+    created_at:datetime;updated_at:datetime;items:List[OrderItemOut]=[]
+    qr:Optional[QRSimple]=None
+    model_config={"from_attributes":True}
+class OrderPublicOut(BaseModel):
+    order_code:Optional[str];customer_name:Optional[str];total:float
+    status:OrderStatus;payment_status:PaymentStatus;updated_at:datetime
+    items:List[OrderItemOut]=[]
     model_config={"from_attributes":True}
 class OrderStatusUpdate(BaseModel):
     status:OrderStatus

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmar entrega</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300..700&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme=light]{
+  --bg:#f7f6f2;--surface:#f9f8f5;--surface2:#fbfbf9;--surface-off:#f1eee9;
+  --border:rgba(40,37,29,.1);--divider:rgba(40,37,29,.07);
+  --text:#28251d;--muted:#7a7974;--faint:#bab9b4;
+  --primary:#01696f;--primary-h:#0c4e54;--primary-hl:#cedcd8;
+  --success:#437a22;--success-hl:#d4dfcc;
+  --danger:#c0392b;--danger-hl:#f8d7d3;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07);
+  --shadow-md:0 4px 14px rgba(0,0,0,.09);
+  --r-sm:.375rem;--r-md:.5rem;--r-lg:.75rem;--r-xl:1rem;--r-full:9999px;
+  --font-d:"Instrument Serif",Georgia,serif;
+  --font-b:"DM Sans","Helvetica Neue",sans-serif;
+}
+[data-theme=dark]{
+  --bg:#171614;--surface:#1c1b19;--surface2:#201f1d;--surface-off:#1d1c1a;
+  --border:rgba(255,255,255,.09);--divider:rgba(255,255,255,.05);
+  --text:#cdccca;--muted:#797876;--faint:#4a4947;
+  --primary:#4f98a3;--primary-h:#227f8b;--primary-hl:#273535;
+  --success:#6daa45;--success-hl:#2e3e28;
+  --danger:#e06c75;--danger-hl:#3d2426;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.25);
+  --shadow-md:0 4px 14px rgba(0,0,0,.35);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:var(--font-b);color:var(--text);background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:2rem 1.75rem;max-width:400px;width:100%;box-shadow:var(--shadow-md);text-align:center;}
+
+.state-icon{font-size:3.5rem;margin-bottom:1rem;}
+.card-title{font-family:var(--font-d);font-size:1.5rem;margin-bottom:.35rem;}
+.card-sub{font-size:.875rem;color:var(--muted);margin-bottom:1.5rem;}
+
+.order-code{font-family:var(--font-d);font-size:2.75rem;letter-spacing:.15em;color:var(--primary);line-height:1;margin-bottom:.3rem;}
+.order-meta{font-size:.8rem;color:var(--muted);margin-bottom:1.25rem;}
+
+.badge{display:inline-block;padding:.25rem .75rem;border-radius:var(--r-full);font-size:.75rem;font-weight:700;}
+.badge-confirmed{background:var(--primary-hl);color:var(--primary);}
+.badge-preparing{background:#e7d7c4;color:#7d4800;}
+.badge-ready{background:var(--success-hl);color:var(--success);}
+.badge-delivered{background:var(--surface-off);color:var(--muted);}
+
+.items-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem;margin-bottom:1.25rem;text-align:left;}
+.item-row{display:flex;justify-content:space-between;align-items:center;font-size:.875rem;padding:.35rem 0;}
+.item-row:not(:last-child){border-bottom:1px solid var(--divider);}
+.item-name{color:var(--text);}
+.item-price{color:var(--muted);font-weight:600;}
+.total-row{display:flex;justify-content:space-between;align-items:center;font-size:1rem;font-weight:700;padding-top:.75rem;margin-top:.5rem;border-top:1px solid var(--border);}
+
+.confirm-btn{width:100%;padding:1rem;background:var(--success);color:#fff;border:none;border-radius:var(--r-lg);font-size:1rem;font-weight:700;font-family:var(--font-b);cursor:pointer;transition:opacity .15s;margin-top:1.25rem;}
+.confirm-btn:hover{opacity:.9;}
+.confirm-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.spinner{color:var(--muted);padding:1.5rem;font-size:.875rem;}
+.error-msg{color:var(--danger);padding:1.25rem;font-size:.875rem;}
+
+.already-tag{display:inline-block;background:var(--success-hl);color:var(--success);padding:.35rem .9rem;border-radius:var(--r-full);font-size:.8rem;font-weight:700;margin-bottom:.85rem;}
+.success-title{font-family:var(--font-d);font-size:1.65rem;color:var(--success);margin-bottom:.5rem;}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="spinner">Cargando pedido...</div>
+</div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const token=params.get('token');
+
+const STATUS_LABELS={'confirmed':'Confirmado','preparing':'En preparación','ready':'Listo para retirar','delivered':'Entregado'};
+const STATUS_BADGE={'confirmed':'badge-confirmed','preparing':'badge-preparing','ready':'badge-ready','delivered':'badge-delivered'};
+
+async function load(){
+  if(!token){render('error','QR inválido');return}
+  try{
+    const r=await fetch(`/deliver-qr/${token}`);
+    if(!r.ok){render('error','Pedido no encontrado');return}
+    const d=await r.json();
+    const r2=await fetch(`/public/orders/${d.order_code}`);
+    if(!r2.ok){render('error','Error al cargar pedido');return}
+    const order=await r2.json();
+    renderOrder(order);
+  }catch{render('error','Error al cargar pedido')}
+}
+
+function render(type,msg){
+  document.getElementById('card').innerHTML=`<div class="state-icon">⚠️</div><div class="error-msg">${msg}</div>`;
+}
+
+function renderOrder(order){
+  const card=document.getElementById('card');
+  if(order.status==='delivered'){
+    card.innerHTML=`
+      <div class="state-icon">✅</div>
+      <div class="already-tag">#${order.order_code}</div>
+      <div class="success-title">Ya entregado</div>
+      <div class="card-sub">Este pedido ya fue marcado como entregado.</div>`;
+    return;
+  }
+
+  const statusLabel=STATUS_LABELS[order.status]||order.status;
+  const badgeCls=STATUS_BADGE[order.status]||'badge-confirmed';
+
+  const itemsHtml=order.items.map(it=>`
+    <div class="item-row">
+      <span class="item-name">${it.qty}× ${it.product.name}</span>
+      <span class="item-price">$${(it.qty*it.unit_price).toLocaleString('es-CL')}</span>
+    </div>`).join('');
+
+  card.innerHTML=`
+    <div class="state-icon">🧾</div>
+    <div class="card-title">Confirmar entrega</div>
+    <div class="order-code">${order.order_code}</div>
+    <div class="order-meta">
+      <span class="badge ${badgeCls}">${statusLabel}</span>
+      ${order.customer_name?`<span style="margin-left:.5rem;font-size:.8rem;color:var(--muted)">${order.customer_name}</span>`:''}
+    </div>
+    <div class="items-box">
+      ${itemsHtml}
+      <div class="total-row"><span>Total</span><span>$${order.total.toLocaleString('es-CL')}</span></div>
+    </div>
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmDelivery()">Marcar como entregado</button>`;
+}
+
+async function confirmDelivery(){
+  const btn=document.getElementById('confirmBtn');
+  btn.disabled=true;btn.textContent='Procesando...';
+  try{
+    const r=await fetch(`/orders/deliver/${token}`,{method:'POST'});
+    if(!r.ok)throw new Error();
+    const order=await r.json();
+    document.getElementById('card').innerHTML=`
+      <div class="state-icon">🎉</div>
+      <div class="success-title">¡Entregado!</div>
+      <div class="order-code" style="margin:.75rem 0">${order.order_code}</div>
+      <div class="card-sub">Pedido cerrado correctamente${order.customer_name?` para <strong>${order.customer_name}</strong>`:''}</div>`;
+  }catch{
+    btn.disabled=false;btn.textContent='Marcar como entregado';
+    alert('Error al confirmar entrega');
+  }
+}
+
+load();
+</script>
+<footer style="text-align:center;padding:1.5rem 1rem">
+  <a href="https://www.skanorder.com" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">
+    <img src="/static/skanorder.svg" alt="Skanorder" style="height:16px;max-width:90px;opacity:.35">
+  </a>
+</footer>
+</body>
+</html>
