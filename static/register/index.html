@@ -348,7 +348,7 @@ async function doRegister(){
     if(!r.ok){showErr(d.detail||'Error al crear la cuenta.');btn.disabled=false;btn.textContent='Crear mi cuenta →';return;}
 
     // Guardar token y redirigir
-    localStorage.setItem('ph_ts',d.access_token);
+    localStorage.setItem('ph_t',d.access_token);
 
     // Mostrar step 3
     document.getElementById('step2').style.display='none';
