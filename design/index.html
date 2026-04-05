@@ -280,11 +280,18 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
         <a href="#how" class="btn-g">Ver cómo funciona</a>
       </div>
     </div>
-    <div class="mockup-wrap">
+    <div class="mockup-wrap" style="position:relative;display:inline-block">
       <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
       <div id="lottie-hero" style="width:min(483px,90vw);height:min(483px,90vw)"></div>
+      <div id="lottie-badge" style="position:absolute;bottom:18%;left:50%;transform:translateX(-50%);background:#01696f;color:#fff;border-radius:999px;padding:.5rem 1.25rem;font-weight:700;font-size:.95rem;opacity:0;transition:opacity .4s ease;white-space:nowrap;box-shadow:0 4px 16px rgba(1,105,111,.4);pointer-events:none">✓ Pagado · Listo para retirar</div>
       <script>
-        lottie.loadAnimation({container:document.getElementById('lottie-hero'),renderer:'svg',loop:true,autoplay:true,path:'/static/skanorder-anim.json'});
+        (function(){
+          var anim=lottie.loadAnimation({container:document.getElementById('lottie-hero'),renderer:'svg',loop:true,autoplay:true,path:'/static/skanorder-anim.json'});
+          var badge=document.getElementById('lottie-badge');
+          anim.addEventListener('enterFrame',function(e){
+            badge.style.opacity=e.currentTime>=95?'1':'0';
+          });
+        })();
       </script>
     </div>
   </div>
