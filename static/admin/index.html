@@ -989,8 +989,19 @@ function renderStoreCards(list){
         <button class="btn-sm ghost" onclick="openPromo(${s.id},'${s.name.replace(/'/g,"\\'")}')">📺 Promo</button>
         <a href="/track?store=${s.id}" target="_blank" class="btn-sm ghost">Tablero</a>
         ${s.promo_media_url?`<button class="btn-sm danger" onclick="deletePromo(${s.id})">Quitar promo</button>`:''}
+        <button class="btn-sm danger" onclick="deleteStore(${s.id},'${s.name.replace(/'/g,"\\'")}')">Eliminar tienda</button>
       </div>
     </div>`).join('');
+}
+
+async function deleteStore(sid,name){
+  if(!confirm(`¿Eliminar la tienda "${name}"?\n\nEsta acción no se puede deshacer.`)) return;
+  try{
+    await api('DELETE',`/stores/${sid}`);
+    toast('Tienda eliminada','ok');
+    await loadMyStores();renderStoreCards();
+    if(currentSid===sid){currentSid=stores[0]?.id||null;updateStoreSel();}
+  }catch(e){toast(e.message,'err');}
 }
 
 async function createStore(){
