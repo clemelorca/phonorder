@@ -1,8 +1,9 @@
 from fastapi import APIRouter,Depends,HTTPException,UploadFile,File
-from database import get_db,Store,StoreStaff,UserRole
+from database import get_db,Store,StoreStaff,UserRole,Subscription,SubStatus
 from auth import require_admin,get_current_user
 from schemas import StoreCreate,StoreUpdate,StoreOut
 from typing import List
+from datetime import datetime,timedelta
 import os,shutil
 
 router=APIRouter(prefix="/stores",tags=["stores"])
@@ -33,7 +34,16 @@ def create_store(data:StoreCreate,db=Depends(get_db),cu=Depends(require_admin)):
         limit=PLAN_STORE_LIMITS.get(plan,1)
         if owned>=limit:
             raise HTTPException(403,f"Tu plan {plan} permite máximo {limit} tienda(s). Actualiza tu plan para agregar más.")
-    s=Store(**data.model_dump(),owner_id=cu.id);db.add(s);db.commit();db.refresh(s);return s
+    s=Store(**data.model_dump(),owner_id=cu.id);db.add(s);db.commit();db.refresh(s)
+    # Crear suscripción trial si es la primera tienda del usuario
+    if cu.role.value!="superadmin":
+        total_stores=db.query(Store).filter(Store.owner_id==cu.id).count()
+        if total_stores==1:
+            trial_end=datetime.utcnow()+timedelta(days=7)
+            sub=Subscription(store_id=s.id,plan=s.plan,status=SubStatus.trial,
+                             price_monthly=0.0,started_at=datetime.utcnow(),next_billing=trial_end)
+            db.add(sub);db.commit()
+    return s
 
 @router.get("/{sid}",response_model=StoreOut)
 def get_store(sid:int,db=Depends(get_db),cu=Depends(get_current_user)):

@@ -2028,7 +2028,7 @@ async function loadMySub(){
   const statusLabels={trial:'Período de prueba',active:'Activo',past_due:'Pago pendiente',cancelled:'Cancelado'};
   const statusColors={trial:'var(--primary)',active:'var(--success)',past_due:'var(--orange)',cancelled:'var(--danger)'};
   mysubEl.innerHTML=subs.map(s=>{
-    const daysLeft=s.next_billing?Math.max(0,Math.ceil((new Date(s.next_billing)-Date.now())/86400000)):null;
+    const daysLeft=s.next_billing?Math.max(0,Math.floor((new Date(s.next_billing)-Date.now())/86400000)):null;
     const isTrial=s.status==='trial';
     return `<div class="card" style="padding:2rem;max-width:480px">
       <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">

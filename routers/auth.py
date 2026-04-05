@@ -47,14 +47,6 @@ def register(request:Request,data:RegisterRequest,db=Depends(get_db)):
     u=User(name=data.name,email=data.email,password_hash=hash_password(data.password),
            role=UserRole.admin,phone=data.phone,is_active=True)
     db.add(u);db.commit();db.refresh(u)
-    # Crear tienda inicial y suscripción trial 7 días
-    from database import Store,Plan as PlanEnum
-    store=Store(owner_id=u.id,name=f"Tienda de {u.name}",plan=PlanEnum(plan),is_active=True)
-    db.add(store);db.commit();db.refresh(store)
-    trial_end=datetime.utcnow()+timedelta(days=7)
-    sub=Subscription(store_id=store.id,plan=PlanEnum(plan),status=SubStatus.trial,
-                     price_monthly=0.0,started_at=datetime.utcnow(),next_billing=trial_end)
-    db.add(sub);db.commit()
     send_welcome_email(u.email, u.name, plan)
     staff_role=_get_staff_role(u.id,db)
     return TokenResponse(access_token=create_access_token(u.id,u.role.value),
