@@ -902,14 +902,19 @@ function buildNav(){
   if(cu.role==='superadmin'){showPanel('sa');loadSA();}
   else{
     loadMyStores().then(()=>{
-      if(stores.length){currentSid=stores[0].id;updateStoreSel();showPanel(cu.role==='staff'?'orders':'dashboard');}
-      else{showPanel('stores');}
+      if(stores.length){
+        currentSid=stores[0].id;updateStoreSel();
+        const saved=localStorage.getItem('ph_panel');
+        const defaultPanel=cu.role==='staff'?'orders':'dashboard';
+        showPanel(saved||defaultPanel);
+      } else{showPanel('stores');}
     });
   }
 }
 
 function showPanel(pid){
   closeSidebar();
+  localStorage.setItem('ph_panel',pid);
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('panel-'+pid)?.classList.add('active');
@@ -2558,8 +2563,13 @@ function initTheme(){
 }
 
 // ── AUTO LOGIN ──
-if(token){api('GET','/auth/me').then(u=>{if(u){cu={id:u.id,role:u.role,name:u.name};initApp();}else{document.getElementById('login-screen').style.display='flex';}}).catch(()=>{document.getElementById('login-screen').style.display='flex';});}
-else{document.getElementById('login-screen').style.display='flex';}
+if(token){
+  document.getElementById('login-screen').style.display='none';
+  api('GET','/auth/me').then(u=>{
+    if(u){cu={id:u.id,role:u.role,name:u.name};initApp();}
+    else{document.getElementById('login-screen').style.display='flex';}
+  }).catch(()=>{document.getElementById('login-screen').style.display='flex';});
+}else{document.getElementById('login-screen').style.display='flex';}
 </script>
 </body>
 </html>
