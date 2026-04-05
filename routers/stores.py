@@ -85,4 +85,4 @@ def delete_promo(sid:int,db=Depends(get_db),cu=Depends(require_admin)):
 def del_store(sid:int,db=Depends(get_db),cu=Depends(require_admin)):
     s=db.query(Store).filter(Store.id==sid).first()
     if not s or (s.owner_id!=cu.id and cu.role!=UserRole.superadmin): raise HTTPException(403)
-    s.is_active=False;db.commit();return {"ok":True}
+    db.delete(s);db.commit();return {"ok":True}
