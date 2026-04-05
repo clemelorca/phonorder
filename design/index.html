@@ -281,44 +281,11 @@ footer p{font-size:var(--t-xs);color:var(--faint);}
       </div>
     </div>
     <div class="mockup-wrap">
-      <div class="mockup-float">✓ Listo para retirar</div>
-      <div class="phone">
-        <div class="p-screen">
-          <p class="p-store">Cafetería Central</p>
-          <div class="p-qr">
-            <svg class="qr-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="5" y="5" width="28" height="28" rx="2" fill="var(--text)"/>
-              <rect x="9" y="9" width="20" height="20" rx="1" fill="var(--bg)"/>
-              <rect x="13" y="13" width="12" height="12" fill="var(--text)"/>
-              <rect x="47" y="5" width="28" height="28" rx="2" fill="var(--text)"/>
-              <rect x="51" y="9" width="20" height="20" rx="1" fill="var(--bg)"/>
-              <rect x="55" y="13" width="12" height="12" fill="var(--text)"/>
-              <rect x="5" y="47" width="28" height="28" rx="2" fill="var(--text)"/>
-              <rect x="9" y="51" width="20" height="20" rx="1" fill="var(--bg)"/>
-              <rect x="13" y="55" width="12" height="12" fill="var(--text)"/>
-              <rect x="40" y="40" width="6" height="6" fill="var(--text)"/>
-              <rect x="50" y="40" width="6" height="6" fill="var(--text)"/>
-              <rect x="60" y="40" width="6" height="6" fill="var(--text)"/>
-              <rect x="70" y="40" width="6" height="6" fill="var(--text)"/>
-              <rect x="40" y="50" width="6" height="6" fill="var(--text)"/>
-              <rect x="60" y="50" width="6" height="6" fill="var(--text)"/>
-              <rect x="40" y="60" width="6" height="6" fill="var(--text)"/>
-              <rect x="50" y="60" width="6" height="6" fill="var(--text)"/>
-              <rect x="70" y="60" width="6" height="6" fill="var(--text)"/>
-              <rect x="40" y="70" width="6" height="6" fill="var(--text)"/>
-              <rect x="60" y="70" width="6" height="6" fill="var(--text)"/>
-              <rect x="70" y="70" width="6" height="6" fill="var(--text)"/>
-            </svg>
-            <p style="font-size:var(--t-xs);color:var(--muted);">Escanea para pedir</p>
-          </div>
-          <div class="p-menu">
-            <div class="p-item"><span class="p-item-name">Café latte</span><span class="p-item-price">$2.500</span><div class="p-add">+</div></div>
-            <div class="p-item"><span class="p-item-name">Tostado jamón</span><span class="p-item-price">$3.800</span><div class="p-add">+</div></div>
-            <div class="p-item"><span class="p-item-name">Jugo naranja</span><span class="p-item-price">$2.200</span><div class="p-add">+</div></div>
-          </div>
-          <div class="p-pay">Pagar · $8.500</div>
-        </div>
-      </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+      <div id="lottie-hero" style="width:min(420px,90vw);height:min(420px,90vw)"></div>
+      <script>
+        lottie.loadAnimation({container:document.getElementById('lottie-hero'),renderer:'svg',loop:true,autoplay:true,path:'/static/skanorder-anim.json'});
+      </script>
     </div>
   </div>
 </section>
