@@ -171,7 +171,6 @@ async def _mp_checkout(order, creds: dict, title: str, base: str, db=None) -> st
             "failure": f"{base}/pay/return?gateway=mercadopago&order_id={order.id}&status=failure",
             "pending": f"{base}/pay/return?gateway=mercadopago&order_id={order.id}&status=pending",
         },
-        "auto_return": "approved",
         "notification_url": f"{base}/payments/webhook/mercadopago",
         "external_reference": str(order.id),
     }
