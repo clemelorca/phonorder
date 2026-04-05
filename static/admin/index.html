@@ -631,24 +631,9 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
       <div class="panel" id="panel-mysub">
         <div>
           <h2 style="font-size:var(--t-lg);font-weight:700">Mi suscripción</h2>
-          <p style="font-size:var(--t-xs);color:var(--muted);margin-top:.25rem">Estado de tu plan, facturación y cambios de plan en línea</p>
+          <p style="font-size:var(--t-xs);color:var(--muted);margin-top:.25rem">Gestiona tu plan</p>
         </div>
-
-        <!-- Banner de retorno desde MP -->
-        <div id="billing-banner" style="display:none"></div>
-
-        <!-- Cards por tienda -->
         <div id="mysub-cards" style="display:flex;flex-direction:column;gap:1.5rem"></div>
-
-        <!-- Tarjetas de planes -->
-        <div>
-          <div style="font-family:var(--font-d);font-size:1.35rem;margin-bottom:.35rem">Planes disponibles</div>
-          <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:1.25rem">SaaS mensual + una pequeña comisión por cada venta procesada</div>
-          <div id="plan-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:1.25rem"></div>
-        </div>
-
-        <!-- Solicitudes plan Cadena pendientes (quotes) -->
-        <div id="plan-leads-banner"></div>
       </div>
 
       <!-- ═══ MI PERFIL ═══ -->
@@ -2013,138 +1998,39 @@ const CARD_ICONS2={visa:'💳',mastercard:'💳',amex:'💳',débito:'🏧',tran
 async function loadMySub(){
   const mysubEl=document.getElementById('mysub-cards');
   if(mysubEl) mysubEl.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted);font-size:var(--t-sm)">Cargando…</div>';
-  let subs,leads;
-  try{
-    [subs,leads]=await Promise.all([
-      api('GET','/me/subscription'),
-      api('GET','/me/plan-leads').catch(()=>[]),
-    ]);
-    subs=subs||[]; leads=leads||[];
-  }catch(e){
-    if(mysubEl) mysubEl.innerHTML=`<div class="card" style="padding:2rem;text-align:center"><div style="color:var(--danger);font-weight:600;margin-bottom:.5rem">Error al cargar suscripción</div><div style="font-size:var(--t-xs);color:var(--muted)">${e.message}</div><button class="btn-sm ghost" style="margin-top:1rem" onclick="loadMySub()">Reintentar</button></div>`;
+  let subs;
+  try{ subs=await api('GET','/me/subscription')||[]; }
+  catch(e){
+    if(mysubEl) mysubEl.innerHTML=`<div class="card" style="padding:2rem;text-align:center"><div style="color:var(--danger);font-weight:600">Error al cargar suscripción</div><button class="btn-sm ghost" style="margin-top:1rem" onclick="loadMySub()">Reintentar</button></div>`;
     return;
   }
-
-  // Banner retorno desde MP
-  const bp=new URLSearchParams(location.search);
-  const billingParam=bp.get('billing');
-  const billingBanner=document.getElementById('billing-banner');
-  if(billingBanner){
-    if(billingParam==='pending'){
-      billingBanner.style.display='block';
-      billingBanner.innerHTML=`<div class="card" style="background:var(--primary-hl);border-color:var(--primary);padding:1rem 1.5rem;display:flex;align-items:center;gap:.75rem">
-        <span style="font-size:1.25rem">⏳</span>
-        <div><strong>Pago en proceso</strong><div style="font-size:var(--t-xs);color:var(--muted);margin-top:.1rem">Tu suscripción se activará automáticamente cuando MercadoPago confirme el pago (puede demorar unos minutos).</div></div>
-      </div>`;
-      history.replaceState({},'',location.pathname);
-    }else if(billingParam==='cancelled'){
-      billingBanner.style.display='block';
-      billingBanner.innerHTML=`<div class="card" style="border-color:var(--orange);padding:1rem 1.5rem;display:flex;align-items:center;gap:.75rem">
-        <span style="font-size:1.25rem">⚠️</span>
-        <div><strong>Suscripción no completada</strong><div style="font-size:var(--t-xs);color:var(--muted);margin-top:.1rem">Puedes intentarlo nuevamente cuando quieras.</div></div>
-      </div>`;
-      history.replaceState({},'',location.pathname);
-    }
-  }
-
-  // Render plan cards
-  const currentPlans=new Set((subs||[]).filter(s=>s.status!=='cancelled').map(s=>s.plan));
-  const planCardsEl=document.getElementById('plan-cards');
-  if(planCardsEl){
-    planCardsEl.innerHTML=Object.entries(PLAN_DEF).map(([key,p])=>{
-      const isCurrent=currentPlans.has(key);
-      const hot=p.hot;
-      return `<div style="background:var(--surface);border:2px solid ${isCurrent?'var(--primary)':hot?'var(--primary)':'var(--border)'};border-radius:var(--r-xl);padding:1.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;${hot?'box-shadow:var(--shadow-md)':''}">
-        ${hot?'<div style="position:absolute;top:-1px;right:1rem;background:var(--primary);color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .65rem;border-radius:0 0 var(--r-md) var(--r-md);letter-spacing:.05em">RECOMENDADO</div>':''}
-        ${isCurrent?'<div style="position:absolute;top:-1px;left:1rem;background:var(--success);color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .65rem;border-radius:0 0 var(--r-md) var(--r-md)">TU PLAN</div>':''}
-        <div>
-          <div style="font-size:1.1rem;font-weight:700;margin-bottom:.15rem">${p.emoji} ${p.label}</div>
-          <div style="font-family:var(--font-d);font-size:2rem;line-height:1;color:${hot?'var(--primary)':'var(--text)'}">${p.price!=null?'$'+p.price.toLocaleString('es-CL'):'A medida'}</div>
-          <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">${p.period}</div>
-        </div>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:.4rem;flex:1">
-          ${p.features.map(f=>`<li style="font-size:.8rem;display:flex;align-items:center;gap:.4rem"><span style="color:var(--success);font-weight:700">✓</span>${f}</li>`).join('')}
-        </ul>
-        ${key==='cadena'
-          ?`<button class="btn-sm ${isCurrent?'ghost':'primary'}" style="margin-top:.5rem" onclick="openContactSales()" ${isCurrent?'disabled':''}>Contactar ventas</button>`
-          :`<button class="btn-sm ${isCurrent?'ghost':'primary'}" style="margin-top:.5rem" onclick="openChangePlanDirect('${key}')" ${isCurrent?'disabled':''}>
-            ${isCurrent?'Plan actual':'Suscribirse'}
-          </button>`
-        }
-      </div>`;
-    }).join('');
-  }
-
-  // Leads / quotes banner
-  const leadsEl=document.getElementById('plan-leads-banner');
-  if(leadsEl&&leads.length){
-    const pendingLeads=leads.filter(l=>l.status==='pending'||l.status==='quoted');
-    if(pendingLeads.length){
-      leadsEl.innerHTML=pendingLeads.map(l=>`
-        <div class="card" style="border-color:${l.status==='quoted'?'var(--success)':'var(--primary)'};padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">
-          <span style="font-size:1.5rem">${l.status==='quoted'?'💬':'⏳'}</span>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:var(--t-sm)">${l.status==='quoted'?'¡Tienes una cotización lista!':'Solicitud plan Cadena en proceso'}</div>
-            <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.15rem">
-              Tienda: <strong>${l.store_name}</strong>
-              ${l.status==='quoted'&&l.quoted_price!=null?` · Precio propuesto: <strong>$${Math.round(l.quoted_price).toLocaleString('es-CL')}/mes</strong>`:''}
-            </div>
-          </div>
-          ${l.status==='quoted'?`<button class="btn-sm primary" onclick="acceptPlanQuote(${l.id})">Aceptar cotización</button>`:''}
-        </div>`).join('');
-    } else {
-      leadsEl.innerHTML='';
-    }
-  }
-
   if(!subs.length){
-    document.getElementById('mysub-cards').innerHTML=`<div class="card" style="padding:2rem;text-align:center;color:var(--muted)">Sin suscripción registrada. Contacta a soporte.</div>`;
+    mysubEl.innerHTML=`<div class="card" style="padding:2rem;text-align:center;color:var(--muted)">Sin suscripción registrada. Contacta a soporte.</div>`;
     return;
   }
-
-  document.getElementById('mysub-cards').innerHTML=subs.map(s=>`
-    <div class="card">
-      <div style="padding:1.5rem;display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:start">
-        <div>
-          <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap">
-            <span style="font-size:1.75rem">${{starter:'🌱',negocio:'🏪',cadena:'🏢'}[s.plan]||'📦'}</span>
-            <div>
-              <div style="font-family:var(--font-d);font-size:1.4rem;line-height:1">${s.store_name}</div>
-              <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.2rem">Plan ${s.plan.charAt(0).toUpperCase()+s.plan.slice(1)}</div>
-            </div>
-            <span class="badge ${SUB_STATUS_CLS2[s.status]||'pending'}" style="margin-left:.5rem">${SUB_STATUS_LABELS2[s.status]||s.status}</span>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.25rem">
-            <div style="background:var(--surface-off);border-radius:var(--r-lg);padding:.85rem 1rem">
-              <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.2rem">Precio mensual</div>
-              <div style="font-family:var(--font-d);font-size:1.35rem">${s.price_monthly>0?'$'+Math.round(s.price_monthly).toLocaleString('es-CL'):'Gratis'}</div>
-            </div>
-            <div style="background:var(--surface-off);border-radius:var(--r-lg);padding:.85rem 1rem">
-              <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.2rem">Próximo cobro</div>
-              <div style="font-size:var(--t-sm);font-weight:600">${s.next_billing?new Date(s.next_billing).toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'}):'—'}</div>
-            </div>
-            <div style="background:var(--surface-off);border-radius:var(--r-lg);padding:.85rem 1rem">
-              <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.2rem">Desde</div>
-              <div style="font-size:var(--t-sm);font-weight:600">${s.started_at?new Date(s.started_at).toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'}):'—'}</div>
-            </div>
-          </div>
-          <!-- Acciones de plan -->
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-            ${s.status!=='cancelled'?`<button class="btn-sm ghost" onclick="openChangePlan(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}','${s.plan}')">Cambiar plan</button>`:''}
-            ${s.status!=='cancelled'?`<button class="btn-sm danger" onclick="cancelSub(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}')">Darse de baja</button>`:''}
-            <button class="btn-sm ghost" onclick="openCardModal(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}',this)">✏️ Actualizar tarjeta</button>
-          </div>
+  const planLabels={starter:'Starter',negocio:'Negocio',cadena:'Cadena'};
+  const statusLabels={trial:'Período de prueba',active:'Activo',past_due:'Pago pendiente',cancelled:'Cancelado'};
+  const statusColors={trial:'var(--primary)',active:'var(--success)',past_due:'var(--orange)',cancelled:'var(--danger)'};
+  mysubEl.innerHTML=subs.map(s=>{
+    const daysLeft=s.next_billing?Math.max(0,Math.ceil((new Date(s.next_billing)-Date.now())/86400000)):null;
+    const isTrial=s.status==='trial';
+    return `<div class="card" style="padding:2rem;max-width:480px">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+        <div style="flex:1">
+          <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.2rem">Plan actual</div>
+          <div style="font-family:var(--font-d);font-size:1.75rem;line-height:1">${planLabels[s.plan]||s.plan}</div>
         </div>
-        <!-- Tarjeta visual -->
-        <div style="min-width:200px">
-          <div style="font-size:var(--t-xs);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Método de pago</div>
-          <div style="background:linear-gradient(135deg,var(--primary),var(--primary-h));border-radius:var(--r-xl);padding:1.25rem;color:#fff">
-            <div style="font-size:.7rem;opacity:.7;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.08em">${s.card_brand||'Sin tarjeta'}</div>
-            <div style="font-size:1.1rem;font-weight:700;letter-spacing:.15em">${s.card_last4?'•••• •••• •••• '+s.card_last4:'——'}</div>
-          </div>
-        </div>
+        <span style="font-size:var(--t-xs);font-weight:700;color:${statusColors[s.status]||'var(--muted)'};background:${statusColors[s.status]||'var(--muted)'}18;padding:.3rem .75rem;border-radius:var(--r-full)">${statusLabels[s.status]||s.status}</span>
       </div>
-    </div>`).join('');
+      ${isTrial&&daysLeft!==null?`<div style="background:var(--primary-hl);border-radius:var(--r-lg);padding:.85rem 1rem;margin-bottom:1.5rem;font-size:var(--t-xs);color:var(--primary)">
+        Te quedan <strong>${daysLeft} día${daysLeft!==1?'s':''}</strong> de prueba gratuita.
+      </div>`:''}
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        ${s.status!=='cancelled'?`<button class="btn-sm ghost" onclick="openChangePlan(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}','${s.plan}')">Cambiar plan</button>`:''}
+        ${s.status!=='cancelled'?`<button class="btn-sm danger" onclick="cancelSub(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}')">Darse de baja</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── Cambiar plan ──
