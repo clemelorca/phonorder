@@ -21,7 +21,7 @@ def _chk_store(sid, cu, db):
     raise HTTPException(403)
 
 def _base_url(request: Request):
-    return str(request.base_url).rstrip("/")
+    return os.getenv("BASE_URL", str(request.base_url).rstrip("/"))
 
 def _get_cfg(sid, gateway, db) -> Optional[dict]:
     cfg = db.query(StorePaymentConfig).filter(
