@@ -3,6 +3,7 @@ from database import get_db,User,StoreStaff,StaffRole,UserRole
 from auth import verify_password,create_access_token,create_refresh_token,decode_token,get_current_user,hash_password
 from schemas import LoginRequest,TokenResponse,RefreshRequest,UserOut,RegisterRequest
 from main import limiter
+from email_service import send_welcome_email
 
 router=APIRouter(prefix="/auth",tags=["auth"])
 
@@ -44,6 +45,7 @@ def register(request:Request,data:RegisterRequest,db=Depends(get_db)):
     u=User(name=data.name,email=data.email,password_hash=hash_password(data.password),
            role=UserRole.admin,phone=data.phone,is_active=True)
     db.add(u);db.commit();db.refresh(u)
+    send_welcome_email(u.email, u.name, data.plan or "starter")
     staff_role=_get_staff_role(u.id,db)
     return TokenResponse(access_token=create_access_token(u.id,u.role.value),
         refresh_token=create_refresh_token(u.id),user_id=u.id,role=u.role.value,name=u.name,staff_role=staff_role)
