@@ -587,26 +587,6 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
           </div>
         </div>
 
-        <!-- Config comisiones Marketplace -->
-        <div class="card">
-          <div class="card-head">
-            <h2>Comisiones — MP Marketplace Split</h2>
-            <span id="marketplace-cfg-status" style="font-size:var(--t-xs)"></span>
-          </div>
-          <div style="padding:1rem 1.5rem;background:var(--primary-hl);border-radius:0;font-size:var(--t-xs);color:var(--primary);line-height:1.5">
-            Con el <strong>App ID de Marketplace</strong> configurado, cada pago procesado vía MercadoPago en las tiendas descontará automáticamente la comisión de Skanorder (2% Starter · 1,5% Negocio) y la enviará a tu cuenta MP. Para Webpay y Getnet las comisiones quedan como pendientes de facturar.
-          </div>
-          <div style="padding:1.25rem 1.5rem;display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
-            <div style="flex:1;min-width:200px">
-              <label style="font-size:var(--t-xs);color:var(--muted);display:block;margin-bottom:.35rem">App ID de Marketplace (MP Developer)</label>
-              <input id="marketplace-id-input" placeholder="1234567890" style="width:100%">
-            </div>
-            <button class="btn-sm primary" onclick="saveMarketplaceConfig()">Guardar</button>
-          </div>
-          <div style="padding:.5rem 1.5rem 1.25rem;font-size:var(--t-xs);color:var(--muted)">
-            Obtén tu App ID en <strong>developers.mercadopago.com</strong> → Tu aplicación → Credenciales de aplicación.
-          </div>
-        </div>
       </div>
 
       <!-- ═══ PAGOS ═══ -->
@@ -1822,6 +1802,7 @@ function renderSAStores(){
         <button class="action-btn" onclick="editSubFromStore(${s.id})">💳 Sub</button>
         <button class="action-btn ${s.is_active?'red':''}" onclick="toggleStoreSA(${s.id},${!s.is_active})">${s.is_active?'Suspender':'Activar'}</button>
         <a class="action-btn" href="/track?store=${s.id}" target="_blank">Tablero</a>
+        <button class="action-btn red" onclick="deleteSAStore(${s.id},'${s.name.replace(/'/g,"\\'")}')">Eliminar</button>
       </div></td>
     </tr>`).join('')
     :`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Sin tiendas</td></tr>`;
@@ -1871,6 +1852,11 @@ async function saveEditStoreSA(){
 async function toggleStoreSA(id,act){
   await api('PATCH',`/superadmin/stores/${id}`,{is_active:act});
   toast(act?'Tienda activada':'Tienda suspendida','ok');loadSA();
+}
+async function deleteSAStore(id,name){
+  if(!confirm(`¿Eliminar la tienda "${name}"?\n\nEsta acción no se puede deshacer.`)) return;
+  try{await api('DELETE',`/stores/${id}`);toast('Tienda eliminada','ok');loadSA();}
+  catch(e){toast(e.message,'err');}
 }
 
 async function createAdmin(){
