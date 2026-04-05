@@ -18,7 +18,7 @@ def send_welcome_email(to: str, name: str, plan: str = "starter"):
               <h2 style="margin:0 0 8px;">Hola {name}, bienvenido/a 👋</h2>
               <p>Tu cuenta en Skanorder fue creada exitosamente con el plan <strong>{plan_label}</strong>.</p>
               <p>Ya puedes entrar a tu panel y comenzar a configurar tu tienda.</p>
-              <a href="https://skanorder.com/admin" style="display:inline-block;background:#6c47ff;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0;">
+              <a href="https://skanorder.com/admin" style="display:inline-block;background:#01696f;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0;">
                 Ir a mi panel →
               </a>
               <p style="color:#666;font-size:14px;margin-top:32px;">Si tienes dudas escríbenos a <a href="mailto:hola@skanorder.com">hola@skanorder.com</a></p>
@@ -40,7 +40,7 @@ def send_password_reset_email(to: str, name: str, reset_token: str):
               <img src="https://skanorder.com/static/skanorder.svg" alt="Skanorder" style="height:40px;margin-bottom:24px;">
               <h2 style="margin:0 0 8px;">Recuperar contraseña</h2>
               <p>Hola {name}, recibimos una solicitud para restablecer tu contraseña.</p>
-              <a href="{reset_url}" style="display:inline-block;background:#6c47ff;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0;">
+              <a href="{reset_url}" style="display:inline-block;background:#01696f;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0;">
                 Restablecer contraseña →
               </a>
               <p style="color:#666;font-size:13px;">Este enlace expira en 30 minutos. Si no solicitaste esto, ignora este email.</p>
