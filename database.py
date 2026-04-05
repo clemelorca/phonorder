@@ -5,9 +5,12 @@ from datetime import datetime
 import enum
 
 import os
-_db_path = os.getenv("DATABASE_URL", "sqlite:///./skanorder.db")
-DATABASE_URL = _db_path
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./skanorder.db")
+# Railway PostgreSQL uses postgres:// but SQLAlchemy requires postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+_is_sqlite = DATABASE_URL.startswith("sqlite")
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if _is_sqlite else {})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
