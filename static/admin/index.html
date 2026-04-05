@@ -2482,15 +2482,15 @@ function renderSubs(){
       <td style="font-size:var(--t-xs)">${s.card_brand?(CARD_ICONS[s.card_brand]||'💳')+' '+s.card_brand+(s.card_last4?' ····'+s.card_last4:''):'<span style="color:var(--faint)">—</span>'}</td>
       <td><div style="display:flex;gap:.4rem">
         <button class="action-btn" onclick="editSub(${s.store_id})">Editar</button>
-        <button class="action-btn red" onclick="deleteSubStore(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}')">Eliminar</button>
+        <button class="action-btn red" onclick="deleteSubStore(${s.owner_id},'${s.owner_name.replace(/'/g,"\\'")}','${s.store_name.replace(/'/g,"\\'")}')">Eliminar</button>
       </div></td>
     </tr>`;}).join('')
     :`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">Sin suscripciones registradas</td></tr>`;
 }
 
-async function deleteSubStore(id,name){
-  if(!confirm(`¿Eliminar la tienda "${name}" y su suscripción?\n\nEsta acción no se puede deshacer.`)) return;
-  try{await api('DELETE',`/stores/${id}`);toast('Tienda eliminada','ok');loadSubs();loadSA();}
+async function deleteSubStore(ownerId,ownerName,storeName){
+  if(!confirm(`¿Eliminar la cuenta de "${ownerName}" (tienda: ${storeName})?\n\nSe eliminarán el usuario y todas sus tiendas. Esta acción no se puede deshacer.`)) return;
+  try{await api('DELETE',`/superadmin/admins/${ownerId}`);toast('Cuenta eliminada','ok');await Promise.all([loadSubs(),loadSA()]);}
   catch(e){toast(e.message,'err');}
 }
 

@@ -373,6 +373,7 @@ def list_subscriptions(db=Depends(get_db),_=Depends(require_superadmin)):
         result.append({
             "id":sub.id,"store_id":sub.store_id,
             "store_name":store.name if store else "—",
+            "owner_id":owner.id if owner else None,
             "owner_name":owner.name if owner else "—",
             "owner_email":owner.email if owner else "—",
             "plan":sub.plan.value,"status":sub.status.value,
