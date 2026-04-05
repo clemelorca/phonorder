@@ -917,8 +917,8 @@ function buildNav(){
   if(cu.role==='superadmin'){showPanel('sa');loadSA();}
   else{
     loadMyStores().then(()=>{
-      if(stores.length){currentSid=stores[0].id;updateStoreSel();}
-      showPanel(cu.role==='staff'?'orders':'dashboard');
+      if(stores.length){currentSid=stores[0].id;updateStoreSel();showPanel(cu.role==='staff'?'orders':'dashboard');}
+      else{showPanel('stores');}
     });
   }
 }

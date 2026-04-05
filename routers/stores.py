@@ -11,7 +11,8 @@ def _ok(s,u,db):
     if u.role==UserRole.superadmin or s.owner_id==u.id: return True
     return bool(db.query(StoreStaff).filter(StoreStaff.store_id==s.id,StoreStaff.user_id==u.id).first())
 
-@router.get("/",response_model=List[StoreOut])
+@router.get("",response_model=List[StoreOut])
+@router.get("/",response_model=List[StoreOut],include_in_schema=False)
 def list_stores(db=Depends(get_db),cu=Depends(get_current_user)):
     if cu.role==UserRole.superadmin: return db.query(Store).all()
     owned=db.query(Store).filter(Store.owner_id==cu.id).all()
@@ -19,7 +20,8 @@ def list_stores(db=Depends(get_db),cu=Depends(get_current_user)):
     extra=db.query(Store).filter(Store.id.in_([r.store_id for r in db.query(StoreStaff).filter(StoreStaff.user_id==cu.id).all()]),~Store.id.in_(ids)).all()
     return owned+extra
 
-@router.post("/",response_model=StoreOut)
+@router.post("",response_model=StoreOut)
+@router.post("/",response_model=StoreOut,include_in_schema=False)
 def create_store(data:StoreCreate,db=Depends(get_db),cu=Depends(require_admin)):
     s=Store(**data.model_dump(),owner_id=cu.id);db.add(s);db.commit();db.refresh(s);return s
 
