@@ -17,7 +17,7 @@ def _gen(url):
     return base64.b64encode(buf.getvalue()).decode()
 
 def _out(q,url):
-    return QROut(**{**QROut.model_validate(q).model_dump(),"qr_image_b64":_gen(url)})
+    return QROut(**{**QROut.model_validate(q).model_dump(),"qr_image_b64":_gen(url),"shop_url":url})
 
 @router.get("/stores/{sid}/qrcodes",response_model=List[QROut])
 def list_qr(sid:int,request:Request,db=Depends(get_db),cu=Depends(get_current_user)):

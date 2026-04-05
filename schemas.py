@@ -108,6 +108,7 @@ class QRSimple(BaseModel):
 class QROut(BaseModel):
     id:int;store_id:int;table_label:str;token:str;qr_type:QRType;created_at:datetime
     qr_image_b64:Optional[str]=None
+    shop_url:Optional[str]=None
     model_config={"from_attributes":True}
 
 class OrderItemIn(BaseModel):

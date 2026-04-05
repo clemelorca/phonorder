@@ -1364,7 +1364,7 @@ function renderQR(q=''){
     const tableQRs=qrs.filter(r=>r.qr_type!=='store').filter(r=>!q||r.table_label.toLowerCase().includes(q)||s.name.toLowerCase().includes(q));
     if(_qrCollapsed[s.id]===undefined) _qrCollapsed[s.id]=true;
     const collapsed=!!_qrCollapsed[s.id];
-    const shopUrl=storeQR?`/shop?token=${storeQR.token}`:'';
+    const shopUrl=storeQR?(storeQR.shop_url||`/shop?token=${storeQR.token}`):'';
 
     const storeQRHtml=storeQR
       ?`<div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap">
@@ -1380,7 +1380,7 @@ function renderQR(q=''){
           </div>
           <div style="flex:1;min-width:180px">
             <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">URL de acceso</div>
-            <div style="font-family:monospace;font-size:var(--t-xs);background:var(--surface-off);border-radius:var(--r-md);padding:.55rem .8rem;word-break:break-all;margin-bottom:.6rem">${location.origin}${shopUrl}</div>
+            <div style="font-family:monospace;font-size:var(--t-xs);background:var(--surface-off);border-radius:var(--r-md);padding:.55rem .8rem;word-break:break-all;margin-bottom:.6rem">${shopUrl}</div>
             <div style="font-size:var(--t-xs);color:var(--muted)">El cliente escanea y accede al catálogo completo.</div>
           </div>
         </div>`
@@ -1537,20 +1537,20 @@ async function showStoreQR(sid,name){
   openM('mqrv');
   try{
     const q=await api('GET',`/stores/${sid}/qrcodes/store`);
-    const shopUrl=`/shop?token=${q.token}`;
+    const shopUrl=q.shop_url||`/shop?token=${q.token}`;
     document.getElementById('mqrv-open').href=shopUrl;
     document.getElementById('mqrv-body').innerHTML=`
       <img src="data:image/png;base64,${q.qr_image_b64}" style="width:200px;height:200px;border-radius:var(--r-lg);border:1px solid var(--border)">
       <div style="font-size:var(--t-xs);color:var(--muted)">Escanea para ir a la tienda</div>
-      <div style="background:var(--surface-off);border-radius:var(--r-md);padding:.5rem .9rem;font-size:var(--t-xs);font-family:monospace;color:var(--muted);word-break:break-all">${location.origin}${shopUrl}</div>
-      <button class="btn-sm ghost" onclick="navigator.clipboard.writeText('${location.origin}${shopUrl}').then(()=>toast('URL copiada','ok'))">Copiar URL</button>`;
+      <div style="background:var(--surface-off);border-radius:var(--r-md);padding:.5rem .9rem;font-size:var(--t-xs);font-family:monospace;color:var(--muted);word-break:break-all">${shopUrl}</div>
+      <button class="btn-sm ghost" onclick="navigator.clipboard.writeText('${shopUrl}').then(()=>toast('URL copiada','ok'))">Copiar URL</button>`;
   }catch(e){document.getElementById('mqrv-body').innerHTML=`<div style="color:var(--danger);padding:1rem;font-size:var(--t-sm)">${e.message}</div>`;}
 }
 
 async function goToShop(sid){
   try{
     const q=await api('GET',`/stores/${sid}/qrcodes/store`);
-    window.open(`/shop?token=${q.token}`,'_blank');
+    window.open(q.shop_url||`/shop?token=${q.token}`,'_blank');
   }catch(e){toast(e.message,'err');}
 }
 
