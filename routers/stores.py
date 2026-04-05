@@ -20,9 +20,19 @@ def list_stores(db=Depends(get_db),cu=Depends(get_current_user)):
     extra=db.query(Store).filter(Store.id.in_([r.store_id for r in db.query(StoreStaff).filter(StoreStaff.user_id==cu.id).all()]),~Store.id.in_(ids)).all()
     return owned+extra
 
+PLAN_STORE_LIMITS={"starter":1,"negocio":3,"cadena":999}
+
 @router.post("",response_model=StoreOut)
 @router.post("/",response_model=StoreOut,include_in_schema=False)
 def create_store(data:StoreCreate,db=Depends(get_db),cu=Depends(require_admin)):
+    if cu.role.value!="superadmin":
+        owned=db.query(Store).filter(Store.owner_id==cu.id).count()
+        # Determinar plan del usuario según su primera tienda
+        first=db.query(Store).filter(Store.owner_id==cu.id).first()
+        plan=first.plan.value if first else "starter"
+        limit=PLAN_STORE_LIMITS.get(plan,1)
+        if owned>=limit:
+            raise HTTPException(403,f"Tu plan {plan} permite máximo {limit} tienda(s). Actualiza tu plan para agregar más.")
     s=Store(**data.model_dump(),owner_id=cu.id);db.add(s);db.commit();db.refresh(s);return s
 
 @router.get("/{sid}",response_model=StoreOut)
