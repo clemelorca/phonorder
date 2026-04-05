@@ -51,8 +51,8 @@ class User(Base):
     phone=Column(String(30))
     is_active=Column(Boolean,default=True)
     created_at=Column(DateTime,default=datetime.utcnow)
-    stores=relationship("Store",back_populates="owner",foreign_keys="Store.owner_id")
-    staff_roles=relationship("StoreStaff",back_populates="user")
+    stores=relationship("Store",back_populates="owner",foreign_keys="Store.owner_id",cascade="all, delete-orphan")
+    staff_roles=relationship("StoreStaff",back_populates="user",cascade="all, delete-orphan")
 
 class Store(Base):
     __tablename__ = "stores"
@@ -137,7 +137,7 @@ class Order(Base):
     store=relationship("Store",back_populates="orders")
     qr=relationship("QRCode",back_populates="orders")
     items=relationship("OrderItem",back_populates="order",cascade="all, delete-orphan")
-    payment=relationship("Payment",back_populates="order",uselist=False)
+    payment=relationship("Payment",back_populates="order",uselist=False,cascade="all, delete-orphan")
 
 class OrderItem(Base):
     __tablename__ = "order_items"

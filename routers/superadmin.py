@@ -359,7 +359,7 @@ def update_store_sa(sid:int,data:StoreUpdate,db=Depends(get_db),_=Depends(requir
 def delete_store_sa(sid:int,db=Depends(get_db),_=Depends(require_superadmin)):
     s=db.query(Store).filter(Store.id==sid).first()
     if not s: raise HTTPException(404)
-    s.is_active=False;db.commit();return {"ok":True}
+    db.delete(s);db.commit();return {"ok":True}
 
 # ── Suscripciones ────────────────────────────────────────────
 
