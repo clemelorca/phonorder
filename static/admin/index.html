@@ -555,7 +555,7 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
         <!-- KPIs de suscripciones -->
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(175px,100%),1fr));gap:1rem" id="sub-kpis"></div>
         <div class="card">
-          <div class="tw"><table><thead><tr><th>Tienda</th><th>Owner</th><th>Plan</th><th>Estado</th><th>Precio / mes</th><th>Próximo cobro</th><th>Tarjeta</th><th>Acciones</th></tr></thead><tbody id="subs-tbody"></tbody></table></div>
+          <div class="tw"><table><thead><tr><th>Tienda</th><th>Owner</th><th>Tiendas</th><th>Plan</th><th>Estado</th><th>Precio / mes</th><th>Próximo cobro</th><th>Tarjeta</th><th>Acciones</th></tr></thead><tbody id="subs-tbody"></tbody></table></div>
         </div>
 
         <!-- Solicitudes plan Cadena -->
@@ -2468,17 +2468,29 @@ function renderSubs(){
   const CARD_ICONS={visa:'💳',mastercard:'💳',amex:'💳',débito:'🏧',transfer:'🏦'};
 
   document.getElementById('subs-tbody').innerHTML=list.length
-    ?list.map(s=>`<tr>
+    ?list.map(s=>{
+      const ownerStores=(saAllStores||[]).filter(x=>x.owner_email===s.owner_email).length;
+      return `<tr>
       <td><div style="font-weight:700;font-size:var(--t-sm)">${s.store_name}</div><span class="badge ${s.store_active?'active-b':'inactive-b'}" style="font-size:.6rem">${s.store_active?'Activa':'Inactiva'}</span></td>
       <td><div style="font-size:var(--t-sm)">${s.owner_name}</div><div style="font-size:var(--t-xs);color:var(--muted)">${s.owner_email}</div></td>
+      <td style="text-align:center;font-weight:700">${ownerStores||'—'}</td>
       <td><span class="badge plan">${s.plan}</span></td>
       <td><span class="badge ${SUB_STATUS_CLS[s.status]||'pending'}">${SUB_STATUS_LABELS[s.status]||s.status}</span></td>
       <td style="font-weight:700">$${Math.round(s.price_monthly).toLocaleString('es-CL')}</td>
       <td style="font-size:var(--t-xs);color:var(--muted)">${s.next_billing?new Date(s.next_billing).toLocaleDateString('es-CL'):'—'}</td>
       <td style="font-size:var(--t-xs)">${s.card_brand?(CARD_ICONS[s.card_brand]||'💳')+' '+s.card_brand+(s.card_last4?' ····'+s.card_last4:''):'<span style="color:var(--faint)">—</span>'}</td>
-      <td><button class="action-btn" onclick="editSub(${s.store_id})">Editar</button></td>
-    </tr>`).join('')
-    :`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">Sin suscripciones registradas</td></tr>`;
+      <td><div style="display:flex;gap:.4rem">
+        <button class="action-btn" onclick="editSub(${s.store_id})">Editar</button>
+        <button class="action-btn red" onclick="deleteSubStore(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}')">Eliminar</button>
+      </div></td>
+    </tr>`;}).join('')
+    :`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">Sin suscripciones registradas</td></tr>`;
+}
+
+async function deleteSubStore(id,name){
+  if(!confirm(`¿Eliminar la tienda "${name}" y su suscripción?\n\nEsta acción no se puede deshacer.`)) return;
+  try{await api('DELETE',`/stores/${id}`);toast('Tienda eliminada','ok');loadSubs();loadSA();}
+  catch(e){toast(e.message,'err');}
 }
 
 let _subStoreId=null;
