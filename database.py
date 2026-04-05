@@ -71,7 +71,7 @@ class Store(Base):
     categories=relationship("Category",back_populates="store",cascade="all, delete-orphan")
     products=relationship("Product",back_populates="store",cascade="all, delete-orphan")
     qrcodes=relationship("QRCode",back_populates="store",cascade="all, delete-orphan")
-    orders=relationship("Order",back_populates="store")
+    orders=relationship("Order",back_populates="store",cascade="all, delete-orphan")
     staff=relationship("StoreStaff",back_populates="store",cascade="all, delete-orphan")
 
 class StoreStaff(Base):
@@ -183,7 +183,7 @@ class SystemConfig(Base):
     value=Column(Text,nullable=True)
 
 # Add back-reference to Store
-Store.subscription=relationship("Subscription",back_populates="store",uselist=False)
+Store.subscription=relationship("Subscription",back_populates="store",uselist=False,cascade="all, delete-orphan")
 
 class StorePaymentConfig(Base):
     __tablename__ = "store_payment_configs"
@@ -196,6 +196,7 @@ class StorePaymentConfig(Base):
     store=relationship("Store",back_populates="payment_configs")
 
 Store.payment_configs=relationship("StorePaymentConfig",back_populates="store",cascade="all, delete-orphan")
+Store.leads=relationship("SalesLead",back_populates="store",cascade="all, delete-orphan")
 
 class SalesLead(Base):
     __tablename__ = "sales_leads"
@@ -209,7 +210,7 @@ class SalesLead(Base):
     quoted_price=Column(Float,nullable=True)
     created_at=Column(DateTime,default=datetime.utcnow)
     updated_at=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
-    store=relationship("Store")
+    store=relationship("Store",back_populates="leads")
 
 def create_tables():
     Base.metadata.create_all(bind=engine)
