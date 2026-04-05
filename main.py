@@ -51,7 +51,33 @@ async def limit_body_size(request: Request, call_next):
     return await call_next(request)
 
 @app.on_event("startup")
-def startup(): create_tables()
+def startup():
+    create_tables()
+    _ensure_superadmin()
+
+def _ensure_superadmin():
+    import os
+    from database import SessionLocal, User, UserRole
+    from auth import hash_password
+    email = os.getenv("SUPERADMIN_EMAIL", "admin@skanorder.com")
+    password = os.getenv("SUPERADMIN_PASSWORD", "")
+    if not password:
+        return  # No password configured, skip
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.email == email).first()
+        if not u:
+            u = User(name="Superadmin", email=email,
+                     password_hash=hash_password(password),
+                     role=UserRole.superadmin, is_active=True)
+            db.add(u)
+            db.commit()
+        elif u.role != UserRole.superadmin or not u.is_active:
+            u.role = UserRole.superadmin
+            u.is_active = True
+            db.commit()
+    finally:
+        db.close()
 
 from routers import auth,superadmin,stores,products,staff,qrcodes,orders,payments,dashboard,websocket,menu,me,gateways,billing
 for r in [auth.router,superadmin.router,stores.router,products.router,staff.router,
