@@ -199,6 +199,12 @@ img{display:block;max-width:100%;}
     <div class="code-val" id="success-code">—</div>
     <div class="code-label">Código de pedido</div>
   </div>
+  <div id="eta-box" style="display:none;background:#fff8e1;border:1px solid #ffe082;border-radius:var(--r-lg);padding:.75rem 1.25rem;margin-bottom:1rem;font-size:.875rem;color:#7d5800;width:100%;max-width:360px">
+    ⏱ Tiempo estimado: <strong id="eta-val">—</strong>
+  </div>
+  <div id="ready-banner" style="display:none;background:var(--success);color:#fff;border-radius:var(--r-lg);padding:.85rem 1.25rem;margin-bottom:1rem;font-size:.95rem;font-weight:700;width:100%;max-width:360px;text-align:center">
+    🎉 ¡Tu pedido está listo para retirar!
+  </div>
   <div class="qr-wrap"><img id="success-qr" src="" alt="QR pedido"></div>
   <div class="qr-hint">Muestra este QR en el mostrador al retirar</div>
   <a id="track-link" class="cta-btn" href="#">Ver estado del pedido</a>
@@ -425,6 +431,8 @@ async function checkout(){
   }
 }
 
+let _readyPoll=null;
+
 async function showSuccess(order){
   document.getElementById('success-code').textContent=order.order_code;
   document.getElementById('track-link').href=`/track?code=${order.order_code}`;
@@ -437,6 +445,49 @@ async function showSuccess(order){
   toast.style.pointerEvents='auto';
   setTimeout(()=>toast.style.opacity='1',300);
   setTimeout(()=>{toast.style.opacity='0';toast.style.pointerEvents='none';},8000);
+
+  // Tiempo estimado de espera
+  if(order.store_id&&order.order_code){
+    const rb=await fetch(`/public/stores/${order.store_id}/board`).catch(()=>null);
+    if(rb&&rb.ok){
+      const board=await rb.json();
+      const ahead=board.filter(o=>
+        ['confirmed','preparing'].includes(o.status)&&
+        new Date(o.created_at)<new Date(order.created_at||Date.now())
+      ).length;
+      const totalItems=(order.items||[]).reduce((s,it)=>s+it.qty,0)||Object.keys(cart).reduce((s,id)=>s+cart[id],0);
+      const mins=Math.max(3,ahead*5+Math.ceil(totalItems*1));
+      document.getElementById('eta-val').textContent=`${mins}–${mins+5} min`;
+      document.getElementById('eta-box').style.display='block';
+    }
+    // Pedir permiso notificaciones y arrancar polling
+    if(Notification.permission==='default') Notification.requestPermission();
+    startReadyPoll(order.order_code);
+  }
+}
+
+function startReadyPoll(orderCode){
+  if(_readyPoll) clearInterval(_readyPoll);
+  _readyPoll=setInterval(async()=>{
+    try{
+      const r=await fetch(`/public/orders/${orderCode}`);
+      if(!r.ok) return;
+      const o=await r.json();
+      if(o.status==='ready'){
+        clearInterval(_readyPoll);_readyPoll=null;
+        showReadyAlert(orderCode);
+      }
+    }catch{}
+  },15000);
+}
+
+function showReadyAlert(orderCode){
+  document.getElementById('eta-box').style.display='none';
+  document.getElementById('ready-banner').style.display='block';
+  if(Notification.permission==='granted'){
+    new Notification('¡Tu pedido está listo! 🎉',{body:`Pedido ${orderCode} listo para retirar en el mostrador.`,icon:'/static/so-fav.png'});
+  }
+  if(navigator.vibrate) navigator.vibrate([300,100,300]);
 }
 
 function resetShop(){
