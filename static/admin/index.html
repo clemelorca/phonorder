@@ -556,14 +556,20 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
           <div class="tw"><table><thead><tr><th>Tienda</th><th>Owner</th><th>Plan</th><th>Pedidos</th><th>Revenue</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="sa-stores-tbody"></tbody></table></div>
         </div>
 
-        <!-- IA Superadmin -->
-        <div class="card">
-          <div class="card-head">
-            <div><h2>🤖 IA · Análisis de plataforma</h2><div style="font-size:var(--t-xs);color:var(--muted);margin-top:.15rem">Insights estratégicos basados en todos los datos de Skanorder</div></div>
-            <button class="btn-sm primary" onclick="loadSAAI()" id="sa-ai-btn">✨ Generar análisis</button>
+      </div>
+
+      <!-- ═══ IA SUPERADMIN ═══ -->
+      <div class="panel" id="panel-ai-sa">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h2 style="font-size:var(--t-lg);font-weight:700">IA · Análisis de plataforma</h2>
+            <p style="font-size:var(--t-xs);color:var(--muted);margin-top:.25rem">Insights estratégicos basados en todos los datos de Skanorder</p>
           </div>
-          <div id="sa-ai-body" style="padding:2rem;text-align:center;color:var(--muted)">
-            <div style="font-size:2rem;margin-bottom:.75rem">🤖</div>
+          <button class="btn-sm primary" onclick="loadSAAI()" id="sa-ai-btn">✨ Generar análisis</button>
+        </div>
+        <div id="sa-ai-body">
+          <div style="text-align:center;padding:4rem 2rem;color:var(--muted)">
+            <div style="font-size:3rem;margin-bottom:1rem">🤖</div>
             <div style="font-size:var(--t-sm)">Haz clic en <strong>Generar análisis</strong> para obtener predicciones y recomendaciones estratégicas de toda la plataforma.</div>
           </div>
         </div>
@@ -813,7 +819,7 @@ async function api(m,p,b){
   const r=await fetch(API+p,{method:m,headers:h,body:b?JSON.stringify(b):undefined});
   if(r.status===401){logout();return null;}
   const d=await r.json().catch(()=>({}));
-  if(!r.ok) throw new Error(d.detail||'Error');
+  if(!r.ok) throw new Error(typeof d.detail==='string'?d.detail:Array.isArray(d.detail)?d.detail.map(e=>e.msg||e).join(', '):'Error');
   return d;
 }
 
@@ -889,7 +895,7 @@ function buildNav(){
 
   let items;
   if(cu.role==='superadmin'){
-    items=[{id:'sa',icon:ICO.grid,label:'Global'},{id:'subs',icon:ICO.card,label:'Suscripciones'}];
+    items=[{id:'sa',icon:ICO.grid,label:'Global'},{id:'subs',icon:ICO.card,label:'Suscripciones'},{id:'ai-sa',icon:ICO.ai,label:'IA'}];
   } else if(cu.role==='staff'&&cu.staff_role!=='manager'){
     // Staff: solo pedidos, QR y perfil
     items=[
@@ -946,7 +952,7 @@ function showPanel(pid){
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('panel-'+pid)?.classList.add('active');
   document.getElementById('nav-'+pid)?.classList.add('active');
-  const titles={dashboard:'Dashboard',orders:'Pedidos',customers:'Clientes',products:'Productos',staff:'Staff',qr:'Códigos QR',stores:'Tiendas',sa:'Superadmin',subs:'Suscripciones',mysub:'Mi suscripción',profile:'Mi perfil',payments:'Métodos de pago',ai:'IA · Insights'};
+  const titles={dashboard:'Dashboard',orders:'Pedidos',customers:'Clientes',products:'Productos',staff:'Staff',qr:'Códigos QR',stores:'Tiendas',sa:'Superadmin',subs:'Suscripciones',mysub:'Mi suscripción',profile:'Mi perfil',payments:'Métodos de pago',ai:'IA · Insights','ai-sa':'IA · Plataforma'};
   document.getElementById('page-title').textContent=titles[pid]||pid;
   const showSel=['dashboard','orders','customers','products','staff'].includes(pid);
   document.getElementById('store-sel').style.display=showSel&&stores.length>1?'':'none';
@@ -2525,7 +2531,7 @@ function renderSAAI(ins){
 
   body.innerHTML=`
     ${alertHtml}
-    <div style="display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem;flex-wrap:wrap;border-bottom:1px solid var(--divider)">
+    <div class="card" style="margin:0"><div style="display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem;flex-wrap:wrap">
       <div style="width:72px;height:72px;border-radius:50%;background:${sb};border:3px solid ${sc};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
         <span style="font-size:1.6rem;font-weight:800;color:${sc};font-family:var(--font-d);line-height:1">${sv}</span>
         <span style="font-size:.55rem;font-weight:700;color:${sc};text-transform:uppercase;letter-spacing:.05em">Score</span>
@@ -2538,8 +2544,8 @@ function renderSAAI(ins){
           <span style="font-size:var(--t-xs);color:var(--muted)">${ins.score_plataforma?.detalle||''}</span>
         </div>
       </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem;padding:1.25rem 1.5rem">
+    </div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem">
       ${_aiCardNew(SVG2.growth,'Crecimiento',[
         ['Tendencia',_aiTrend(ins.crecimiento?.tendencia)],
         ['Análisis',ins.crecimiento?.insight||'—'],
@@ -2561,7 +2567,7 @@ function renderSAAI(ins){
         ['Distribución',ins.planes?.distribucion_insight||'—'],
       ],ins.planes?.accion)}
     </div>
-    <div style="font-size:var(--t-xs);color:var(--faint);text-align:center;padding:0 1.5rem 1.25rem;display:flex;align-items:center;justify-content:center;gap:.5rem">
+    <div style="font-size:var(--t-xs);color:var(--faint);text-align:center;display:flex;align-items:center;justify-content:center;gap:.5rem">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       Generado con IA · Análisis orientativo basado en datos históricos de la plataforma
     </div>`;
