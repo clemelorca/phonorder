@@ -1,9 +1,10 @@
 from fastapi import APIRouter,Depends,HTTPException,Request
+from fastapi.responses import Response
 from database import get_db,Store,QRCode,UserRole,QRType
 from auth import require_admin,get_current_user
 from schemas import QRCreate,QROut
 from typing import List
-import uuid,qrcode,io,base64,os
+import uuid,qrcode,qrcode.image.svg,io,base64,os
 
 router=APIRouter(tags=["qrcodes"])
 
@@ -50,6 +51,24 @@ def get_or_create_store_qr(sid:int,request:Request,db=Depends(get_db),cu=Depends
         q=QRCode(store_id=sid,table_label="Tienda",token=tok,qr_type=QRType.store)
         db.add(q);db.commit();db.refresh(q)
     return _out(q,f"{base}/shop?token={q.token}")
+
+@router.get("/stores/{sid}/qrcodes/store/svg")
+def get_store_qr_svg(sid:int,request:Request,db=Depends(get_db),cu=Depends(require_admin)):
+    s=db.query(Store).filter(Store.id==sid).first()
+    if not s or (s.owner_id!=cu.id and cu.role!=UserRole.superadmin): raise HTTPException(403)
+    base=_base(request)
+    q=db.query(QRCode).filter(QRCode.store_id==sid,QRCode.qr_type==QRType.store).first()
+    if not q:
+        tok=uuid.uuid4().hex
+        q=QRCode(store_id=sid,table_label="Tienda",token=tok,qr_type=QRType.store)
+        db.add(q);db.commit();db.refresh(q)
+    url=f"{base}/shop?token={q.token}"
+    factory=qrcode.image.svg.SvgPathImage
+    img=qrcode.make(url,image_factory=factory,box_size=10,border=2)
+    buf=io.BytesIO();img.save(buf);svg=buf.getvalue()
+    store_name=s.name.replace(" ","-").lower()
+    return Response(content=svg,media_type="image/svg+xml",
+                    headers={"Content-Disposition":f'attachment; filename="qr-{store_name}.svg"'})
 
 @router.delete("/stores/{sid}/qrcodes/{qid}")
 def del_qr(sid:int,qid:int,db=Depends(get_db),cu=Depends(require_admin)):

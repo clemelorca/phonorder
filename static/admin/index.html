@@ -780,7 +780,7 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
   <div id="mqrv-body" style="display:flex;flex-direction:column;align-items:center;gap:1rem">
     <div style="color:var(--muted);padding:2rem">Cargando QR...</div>
   </div>
-</div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mqrv')">Cerrar</button><a id="mqrv-open" href="#" target="_blank" class="btn-sm primary">🏪 Abrir tienda</a></div></div></div>
+</div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mqrv')">Cerrar</button><a id="mqrv-dl-svg" href="#" download class="btn-sm ghost">⬇ SVG</a><a id="mqrv-open" href="#" target="_blank" class="btn-sm primary">🏪 Abrir tienda</a></div></div></div>
 
 <!-- Modal suscripción -->
 <div class="mo" id="msub"><div class="modal"><div class="modal-head"><h2 id="msub-title">Suscripción</h2><button class="modal-close" onclick="closeM('msub')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body">
@@ -1643,11 +1643,13 @@ async function showStoreQR(sid,name){
   document.getElementById('mqrv-title').textContent='QR Tienda · '+name;
   document.getElementById('mqrv-body').innerHTML='<div style="color:var(--muted);padding:2rem;font-size:var(--t-sm)">Cargando QR...</div>';
   document.getElementById('mqrv-open').href='#';
+  document.getElementById('mqrv-dl-svg').href='#';
   openM('mqrv');
   try{
     const q=await api('GET',`/stores/${sid}/qrcodes/store`);
     const shopUrl=q.shop_url||`/shop?token=${q.token}`;
     document.getElementById('mqrv-open').href=shopUrl;
+    document.getElementById('mqrv-dl-svg').href=`/stores/${sid}/qrcodes/store/svg`;
     document.getElementById('mqrv-body').innerHTML=`
       <img src="data:image/png;base64,${q.qr_image_b64}" style="width:200px;height:200px;border-radius:var(--r-lg);border:1px solid var(--border)">
       <div style="font-size:var(--t-xs);color:var(--muted)">Escanea para ir a la tienda</div>
