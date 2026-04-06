@@ -53,6 +53,7 @@ class StoreCreate(BaseModel):
 class StoreUpdate(BaseModel):
     name:Optional[str]=None;description:Optional[str]=None;address:Optional[str]=None
     logo_b64:Optional[str]=None;plan:Optional[Plan]=None;is_active:Optional[bool]=None
+    primary_color:Optional[str]=None
     @field_validator('logo_b64')
     @classmethod
     def _chk_logo(cls,v):
@@ -62,6 +63,7 @@ class StoreOut(BaseModel):
     id:int;owner_id:int;name:str;description:Optional[str]
     address:Optional[str];logo_b64:Optional[str];plan:Plan
     promo_media_url:Optional[str]=None;promo_media_type:Optional[str]=None
+    primary_color:Optional[str]="#01696f"
     is_active:bool;created_at:datetime
     model_config={"from_attributes":True}
 
@@ -116,12 +118,13 @@ class OrderItemIn(BaseModel):
 class OrderCreate(BaseModel):
     qr_token:str;customer_name:Optional[str]=None;customer_phone:Optional[str]=None
     items:List[OrderItemIn];notes:Optional[str]=None;payment_method:str="webpay"
+    tip:Optional[float]=0.0
 class OrderItemOut(BaseModel):
     id:int;product_id:int;qty:int;unit_price:float;notes:Optional[str];product:ProductOut
     model_config={"from_attributes":True}
 class OrderOut(BaseModel):
     id:int;store_id:int;customer_name:Optional[str];customer_phone:Optional[str]
-    total:float;status:OrderStatus;payment_status:PaymentStatus
+    total:float;tip:Optional[float]=0.0;status:OrderStatus;payment_status:PaymentStatus
     notes:Optional[str];order_code:Optional[str];order_qr_token:Optional[str]
     created_at:datetime;updated_at:datetime;items:List[OrderItemOut]=[]
     qr:Optional[QRSimple]=None
@@ -154,3 +157,4 @@ class MenuCategory(BaseModel):
 class MenuResponse(BaseModel):
     store_id:int;store_name:str;store_description:Optional[str]
     store_logo:Optional[str];table_label:str;categories:List[MenuCategory]
+    primary_color:Optional[str]="#01696f"

@@ -97,6 +97,8 @@ img{display:block;max-width:100%;}
 .pay-btn{width:100%;padding:.9rem;background:var(--primary);color:#fff;border-radius:var(--r-lg);font-size:.95rem;font-weight:800;transition:background var(--ease);}
 .pay-btn:hover{background:var(--primary-h);}
 .pay-btn:disabled{opacity:.5;}
+.tip-btn{padding:.35rem .75rem;border-radius:var(--r-full);font-size:.8rem;font-weight:600;border:1.5px solid var(--border);color:var(--muted);background:var(--surface);transition:all var(--ease);cursor:pointer;}
+.tip-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
 /* SUCCESS */
 .success-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:50;padding:2rem 1.5rem;text-align:center;overflow-y:auto;align-items:center;flex-direction:column;justify-content:center;}
@@ -157,9 +159,22 @@ img{display:block;max-width:100%;}
   </div>
   <div class="sheet-body">
     <div id="cart-items-el"></div>
-    <div class="cart-total-row"><span>Total</span><span id="cart-total-el">$0</span></div>
+    <div class="cart-total-row"><span>Subtotal</span><span id="cart-total-el">$0</span></div>
   </div>
   <div class="sheet-foot">
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">Propina (opcional)</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap" id="tip-btns">
+        <button class="tip-btn" onclick="setTip(0)" data-pct="0">Sin propina</button>
+        <button class="tip-btn" onclick="setTip(5)" data-pct="5">5%</button>
+        <button class="tip-btn" onclick="setTip(10)" data-pct="10">10%</button>
+        <button class="tip-btn" onclick="setTip(15)" data-pct="15">15%</button>
+      </div>
+      <div id="tip-row" style="display:none;margin-top:.5rem;font-size:.8rem;color:var(--muted);text-align:right">Propina: <strong id="tip-display">$0</strong></div>
+    </div>
+    <div id="total-with-tip-row" style="display:none;border-top:1px solid var(--divider);padding-top:.6rem;margin-bottom:.5rem;display:flex;justify-content:space-between;font-size:1rem;font-weight:800">
+      <span>Total</span><span id="total-with-tip-el">$0</span>
+    </div>
     <input id="cust-name" type="text" placeholder="Tu nombre (opcional)">
     <input id="cust-phone" type="tel" placeholder="Teléfono (opcional)">
     <button class="pay-btn" id="pay-btn" onclick="checkout()">Pagar ahora</button>
@@ -317,6 +332,26 @@ function setQty(pid,delta){
   updateFab();
 }
 
+let _tipPct=0;
+
+function setTip(pct){
+  _tipPct=pct;
+  document.querySelectorAll('.tip-btn').forEach(b=>b.classList.toggle('active',Number(b.dataset.pct)===pct));
+  const subtotal=Object.keys(cart).reduce((s,id)=>s+cart[id]*getProduct(Number(id)).price,0);
+  const tip=Math.round(subtotal*pct/100);
+  const tipRow=document.getElementById('tip-row');
+  const totalRow=document.getElementById('total-with-tip-row');
+  if(pct>0){
+    tipRow.style.display='block';
+    document.getElementById('tip-display').textContent='$'+tip.toLocaleString('es-CL');
+    totalRow.style.display='flex';
+    document.getElementById('total-with-tip-el').textContent='$'+(subtotal+tip).toLocaleString('es-CL');
+  } else {
+    tipRow.style.display='none';
+    totalRow.style.display='none';
+  }
+}
+
 function updateFab(){
   const ids=Object.keys(cart);
   const count=ids.reduce((s,id)=>s+cart[id],0);
@@ -325,6 +360,7 @@ function updateFab(){
   document.getElementById('fab-total').textContent='$'+total.toLocaleString('es-CL');
   document.getElementById('cart-total-el').textContent='$'+total.toLocaleString('es-CL');
   document.getElementById('cart-fab').classList.toggle('hidden',count===0);
+  if(_tipPct) setTip(_tipPct);
 }
 
 function openCart(){
@@ -354,11 +390,13 @@ async function checkout(){
   btn.disabled=true;btn.textContent='Procesando…';
   try{
     const items=Object.keys(cart).map(id=>({product_id:Number(id),qty:cart[id]}));
+    const subtotal=items.reduce((s,it)=>s+it.qty*getProduct(it.product_id).price,0);
+    const tip=Math.round(subtotal*_tipPct/100);
     const r1=await fetch('/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       qr_token:token,
       customer_name:document.getElementById('cust-name').value||null,
       customer_phone:document.getElementById('cust-phone').value||null,
-      items,payment_method:'webpay'
+      items,payment_method:'webpay',tip
     })});
     if(!r1.ok) throw new Error((await r1.json()).detail||'Error al crear pedido');
     const order=await r1.json();

@@ -64,6 +64,7 @@ class Store(Base):
     logo_b64=Column(Text)
     promo_media_url=Column(String(255))
     promo_media_type=Column(String(10))  # 'image' | 'video'
+    primary_color=Column(String(7),default="#01696f")  # hex color
     plan=Column(SAEnum(Plan),default=Plan.starter)
     is_active=Column(Boolean,default=True)
     created_at=Column(DateTime,default=datetime.utcnow)
@@ -130,6 +131,7 @@ class Order(Base):
     status=Column(SAEnum(OrderStatus),default=OrderStatus.pending)
     payment_status=Column(SAEnum(PaymentStatus),default=PaymentStatus.pending)
     notes=Column(Text)
+    tip=Column(Float,default=0.0)
     order_code=Column(String(20),unique=True,index=True,nullable=True)
     order_qr_token=Column(String(64),unique=True,index=True,nullable=True)
     created_at=Column(DateTime,default=datetime.utcnow)

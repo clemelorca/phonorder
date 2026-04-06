@@ -378,6 +378,7 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
           <div class="kpi"><div class="kpi-label">Ventas mes</div><div class="kpi-val" id="k-rev-month">—</div></div>
           <div class="kpi"><div class="kpi-label">Ticket promedio</div><div class="kpi-val" id="k-avg">—</div></div>
           <div class="kpi"><div class="kpi-label">Cancelaciones</div><div class="kpi-val" id="k-cancel">—</div><div class="kpi-delta">del total</div></div>
+          <div class="kpi"><div class="kpi-label">Propinas este mes</div><div class="kpi-val" id="k-tips-month" style="color:var(--success)">—</div><div class="kpi-delta" id="k-tips-total" style="font-size:.65rem"></div></div>
         </div>
 
         <!-- Gráfico de tendencia 7 días + horas peak -->
@@ -1071,6 +1072,12 @@ async function loadDash(){
     document.getElementById('k-rev-month').textContent='$'+Math.round(an.revenue_month).toLocaleString('es-CL');
     document.getElementById('k-avg').textContent='$'+Math.round(an.avg_ticket).toLocaleString('es-CL');
     document.getElementById('k-cancel').textContent=an.cancellation_rate+'%';
+    if(an.tips_month!==undefined){
+      const tipEl=document.getElementById('k-tips-month');
+      if(tipEl) tipEl.textContent='$'+Math.round(an.tips_month).toLocaleString('es-CL');
+      const tipTotEl=document.getElementById('k-tips-total');
+      if(tipTotEl) tipTotEl.textContent='$'+Math.round(an.tips_total).toLocaleString('es-CL');
+    }
 
     // Gráfico de barras 7 días
     const maxRev=Math.max(...(an.revenue_7days||[]).map(r=>r.revenue),1);

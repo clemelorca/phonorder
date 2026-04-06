@@ -98,9 +98,16 @@ def analytics(sid:int,db=Depends(get_db),cu=Depends(get_current_user)):
         .order_by(func.sum(OrderItem.qty*OrderItem.unit_price).desc()).limit(5).all())
     top_categories=[{"name":r.name,"orders":r.orders,"revenue":float(r.revenue or 0)} for r in cat_q]
 
+    tips_today=float(db.query(func.sum(Order.tip)).filter(Order.store_id==sid,Order.created_at>=today,Order.payment_status==PaymentStatus.paid).scalar() or 0)
+    tips_month=float(db.query(func.sum(Order.tip)).filter(Order.store_id==sid,Order.created_at>=month_start,Order.payment_status==PaymentStatus.paid).scalar() or 0)
+    tips_total=float(db.query(func.sum(Order.tip)).filter(Order.store_id==sid,Order.payment_status==PaymentStatus.paid).scalar() or 0)
+
     return {
         "revenue_7days":revenue_7days,
         "avg_ticket":avg_ticket,
+        "tips_today":tips_today,
+        "tips_month":tips_month,
+        "tips_total":tips_total,
         "revenue_week":revenue_week,
         "orders_week":orders_week,
         "revenue_month":revenue_month,

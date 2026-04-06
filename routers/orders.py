@@ -24,7 +24,7 @@ def _gen_order_code(db):
     raise HTTPException(500,"No se pudo generar código de pedido")
 
 @router.post("/orders",response_model=OrderOut)
-def create_order(data:OrderCreate,db=Depends(get_db)):
+async def create_order(data:OrderCreate,db=Depends(get_db)):
     qr=db.query(QRCode).filter(QRCode.token==data.qr_token).first()
     if not qr: raise HTTPException(404,"QR inválido")
     total=0.0;pairs=[]
@@ -33,15 +33,18 @@ def create_order(data:OrderCreate,db=Depends(get_db)):
         if not p: raise HTTPException(400,f"Producto {item.product_id} no disponible")
         if p.stock!=-1 and p.stock<item.qty: raise HTTPException(400,f"Stock insuficiente: {p.name}")
         total+=p.price*item.qty;pairs.append((p,item))
+    tip=round(float(data.tip or 0),2)
     o=Order(store_id=qr.store_id,qr_id=qr.id,customer_name=data.customer_name,
-            customer_phone=data.customer_phone,total=total,notes=data.notes,
+            customer_phone=data.customer_phone,total=total+tip,tip=tip,notes=data.notes,
             order_code=_gen_order_code(db))
     db.add(o);db.flush()
     for p,item in pairs:
         db.add(OrderItem(order_id=o.id,product_id=p.id,qty=item.qty,unit_price=p.price,notes=item.notes))
         if p.stock!=-1: p.stock-=item.qty
     db.add(Payment(order_id=o.id,amount=total,method=PaymentMethod(data.payment_method),status=PaymentStatus.pending))
-    db.commit();db.refresh(o);return o
+    db.commit();db.refresh(o)
+    await manager.broadcast(o.store_id,{"event":"new_order","order_id":o.id,"order_code":o.order_code,"status":o.status.value})
+    return o
 
 @router.get("/stores/{sid}/orders",response_model=List[OrderOut])
 def list_orders(sid:int,status:Optional[str]=None,phone:Optional[str]=None,
