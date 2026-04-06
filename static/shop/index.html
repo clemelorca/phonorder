@@ -171,9 +171,9 @@ img{display:block;max-width:100%;}
   </div>
 </div>
 
-<div id="receipt-toast" style="position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);background:#7a6200;color:#fff;border-radius:999px;padding:.55rem 1rem .55rem 1.1rem;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.6rem;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:200;white-space:nowrap;opacity:0;transition:opacity .3s ease;pointer-events:none">
-  ⚠️ Captura este comprobante para retirar
-  <button onclick="document.getElementById('receipt-toast').style.opacity=0;document.getElementById('receipt-toast').style.pointerEvents='none'" style="background:rgba(255,255,255,.25);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;color:#fff;font-size:.75rem;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+<div id="receipt-toast" style="position:fixed;top:1.25rem;right:1.25rem;background:#7a6200;color:#fff;border-radius:14px;padding:.85rem 1rem .85rem 1.25rem;font-size:.875rem;font-weight:600;display:flex;align-items:center;gap:.75rem;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:200;max-width:280px;opacity:0;transition:opacity .3s ease;pointer-events:none">
+  ⚠️ Captura este comprobante para retirar tu pedido
+  <button onclick="document.getElementById('receipt-toast').style.opacity=0;document.getElementById('receipt-toast').style.pointerEvents='none'" style="background:rgba(255,255,255,.25);border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;color:#fff;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
 </div>
 
 <div class="success-screen" id="success-screen">

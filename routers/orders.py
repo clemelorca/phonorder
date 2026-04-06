@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,Request
 from fastapi.responses import JSONResponse
 from database import (get_db,Order,OrderItem,Product,QRCode,Payment,Store,
     OrderStatus,PaymentStatus,PaymentMethod,StoreStaff,UserRole)
@@ -6,7 +6,7 @@ from auth import get_current_user
 from schemas import OrderCreate,OrderOut,OrderStatusUpdate,OrderPublicOut
 from typing import List,Optional
 from datetime import datetime
-import random,string,qrcode,io,base64
+import random,string,qrcode,io,base64,os
 from routers.websocket import manager
 
 router=APIRouter(tags=["orders"])
@@ -93,10 +93,11 @@ def live_board(sid:int,db=Depends(get_db)):
               .order_by(Order.created_at.asc()).all())
 
 @router.get("/deliver-qr/{token}")
-def order_delivery_qr(token:str,db=Depends(get_db)):
+def order_delivery_qr(token:str,request:Request,db=Depends(get_db)):
     o=db.query(Order).filter(Order.order_qr_token==token).first()
     if not o: raise HTTPException(404,"QR inválido")
-    url=f"/deliver?token={token}"
+    base=os.getenv("BASE_URL",str(request.base_url).rstrip("/"))
+    url=f"{base}/deliver?token={token}"
     q=qrcode.QRCode(box_size=6,border=2);q.add_data(url);q.make(fit=True)
     img=q.make_image(fill_color="black",back_color="white")
     buf=io.BytesIO();img.save(buf,format="PNG")
