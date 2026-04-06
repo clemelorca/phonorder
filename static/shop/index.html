@@ -199,16 +199,20 @@ function esc(s){const d=document.createElement('div');d.textContent=String(s??''
 // ── Retorno desde gateway de pago ──────────────────────────
 (async()=>{
   const pmStatus=params.get('payment');
-  const orderCode=params.get('order_code');
-  if(!pmStatus) return;
+  const orderCode=params.get('order_code')||sessionStorage.getItem('sk_last_order');
   // Limpiar URL
-  history.replaceState(null,'',location.pathname+(token?`?token=${token}`:''));
-  if(pmStatus==='success'&&orderCode){
-    // Mostrar pantalla de éxito
+  if(params.get('payment')) history.replaceState(null,'',location.pathname+(token?`?token=${token}`:''));
+  if((pmStatus==='success'||(!pmStatus&&orderCode))&&orderCode){
     await load();
     const r=await fetch(`/public/orders/${orderCode}`);
-    if(r.ok){const o=await r.json();showSuccess({...o,order_code:orderCode});}
-  } else if(pmStatus==='failure'||pmStatus==='error'){
+    if(r.ok){
+      const o=await r.json();
+      sessionStorage.setItem('sk_last_order',orderCode);
+      showSuccess({...o,order_code:orderCode});
+      return;
+    }
+  }
+  if(pmStatus==='failure'||pmStatus==='error'){
     await load();
     setTimeout(()=>alert('El pago no pudo completarse. Por favor intenta nuevamente.'),500);
   }
@@ -373,6 +377,7 @@ async function showSuccess(order){
 
 function resetShop(){
   cart={};
+  sessionStorage.removeItem('sk_last_order');
   document.getElementById('success-screen').classList.remove('open');
   updateFab();renderProducts(null);
 }
