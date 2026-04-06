@@ -171,10 +171,14 @@ img{display:block;max-width:100%;}
   </div>
 </div>
 
+<div id="receipt-toast" style="position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);background:#7a6200;color:#fff;border-radius:999px;padding:.55rem 1rem .55rem 1.1rem;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.6rem;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:200;white-space:nowrap;opacity:0;transition:opacity .3s ease;pointer-events:none">
+  ⚠️ Captura este comprobante para retirar
+  <button onclick="document.getElementById('receipt-toast').style.opacity=0;document.getElementById('receipt-toast').style.pointerEvents='none'" style="background:rgba(255,255,255,.25);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;color:#fff;font-size:.75rem;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+</div>
+
 <div class="success-screen" id="success-screen">
   <div class="success-icon">🎉</div>
   <div class="success-title">¡Pedido confirmado!</div>
-  <div style="background:#fffbe6;border:1px solid #f0d040;border-radius:8px;padding:.6rem 1rem;font-size:.78rem;color:#7a6200;max-width:300px;margin:.75rem auto 0;text-align:center">⚠️ Guarda o captura este comprobante para retirar tu pedido</div>
   <div class="code-box">
     <div class="code-val" id="success-code">—</div>
     <div class="code-label">Código de pedido</div>
@@ -373,6 +377,10 @@ async function showSuccess(order){
     if(r.ok){const d=await r.json();document.getElementById('success-qr').src=`data:image/png;base64,${d.qr_b64}`;}
   }
   document.getElementById('success-screen').classList.add('open');
+  const toast=document.getElementById('receipt-toast');
+  toast.style.pointerEvents='auto';
+  setTimeout(()=>toast.style.opacity='1',300);
+  setTimeout(()=>{toast.style.opacity='0';toast.style.pointerEvents='none';},8000);
 }
 
 function resetShop(){
