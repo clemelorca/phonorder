@@ -61,8 +61,10 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:.65rem 1.2
 .col-empty{color:var(--mu);font-size:13px;text-align:center;padding:2rem 1rem;opacity:.6;}
 
 /* ── Order card ── */
-.ocard{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:.75rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .15s;}
+.ocard{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:.75rem;display:flex;flex-direction:column;gap:.4rem;transition:border-color .15s,opacity .15s;cursor:grab;}
 .ocard:hover{border-color:var(--pr);}
+.ocard.dragging{opacity:.35;cursor:grabbing;}
+.col-body.drag-over{outline:2px dashed var(--pr);outline-offset:-4px;background:color-mix(in srgb,var(--pr) 8%,transparent);}
 .ocard-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
 .ocode{font-size:1.1rem;font-weight:900;letter-spacing:.06em;color:var(--pr);}
 .otime{font-size:11px;color:var(--mu);flex-shrink:0;}
@@ -277,7 +279,7 @@ function card(o){
     actions=`<button class="oact act-back" onclick="upd(${o.id},'preparing')">← Preparando</button>`;
   }
 
-  return `<div class="ocard" id="oc-${o.id}">
+  return `<div class="ocard" id="oc-${o.id}" draggable="true" data-oid="${o.id}" data-status="${o.status}">
     <div class="ocard-top">
       <span class="ocode">#${o.order_code||o.id}</span>
       <span class="otime${urgent?' urgent':''}" title="${new Date(o.created_at).toLocaleTimeString('es-CL')}">${timeAgo(o.created_at)}</span>
@@ -307,6 +309,61 @@ function renderBoard(orders){
   renderCol('confirmed',orders);
   renderCol('preparing',orders);
   renderCol('ready',orders);
+  initDrag();
+}
+
+const COL_STATUS={
+  'body-confirmed':'confirmed',
+  'body-preparing':'preparing',
+  'body-ready':'ready'
+};
+
+// Movimientos válidos (mismas reglas que los botones)
+const VALID_MOVES={
+  confirmed:['preparing'],
+  preparing:['confirmed','ready'],
+  ready:['preparing']
+};
+
+let _dragOid=null, _dragStatus=null;
+
+function initDrag(){
+  // Cards
+  document.querySelectorAll('.ocard').forEach(card=>{
+    card.addEventListener('dragstart',e=>{
+      _dragOid=parseInt(card.dataset.oid);
+      _dragStatus=card.dataset.status;
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>card.classList.add('dragging'),0);
+    });
+    card.addEventListener('dragend',()=>{
+      card.classList.remove('dragging');
+      document.querySelectorAll('.col-body').forEach(c=>c.classList.remove('drag-over'));
+    });
+  });
+
+  // Columnas
+  document.querySelectorAll('.col-body').forEach(col=>{
+    col.addEventListener('dragover',e=>{
+      const targetStatus=COL_STATUS[col.id];
+      if(_dragStatus&&VALID_MOVES[_dragStatus]?.includes(targetStatus)){
+        e.preventDefault();
+        col.classList.add('drag-over');
+      }
+    });
+    col.addEventListener('dragleave',e=>{
+      if(!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+    });
+    col.addEventListener('drop',e=>{
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const targetStatus=COL_STATUS[col.id];
+      if(_dragOid&&_dragStatus!==targetStatus&&VALID_MOVES[_dragStatus]?.includes(targetStatus)){
+        upd(_dragOid,targetStatus);
+      }
+      _dragOid=null;_dragStatus=null;
+    });
+  });
 }
 
 async function upd(oid,st){
