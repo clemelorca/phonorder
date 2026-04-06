@@ -470,6 +470,12 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
       </div>
 
       <!-- ═══ TIENDAS (admin) ═══ -->
+      <div class="panel" id="panel-kitchen">
+        <h2 style="font-size:var(--t-lg);font-weight:700">Tablero Cocina &amp; Bar</h2>
+        <p style="color:var(--muted);font-size:var(--t-sm)">Selecciona una tienda para abrir el tablero en una nueva ventana.</p>
+        <div class="store-grid" id="kitchen-store-grid"></div>
+      </div>
+
       <div class="panel" id="panel-stores">
         <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
           <h2 style="font-size:var(--t-lg);font-weight:700;flex:1">Mis tiendas</h2>
@@ -892,6 +898,7 @@ function buildNav(){
     profile:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
     box:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>',
     ai:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c.3 1.4 1.3 2.4 2.7 2.7-1.4.3-2.4 1.3-2.7 2.7-.3-1.4-1.3-2.4-2.7-2.7 1.4-.3 2.4-1.3 2.7-2.7z"/><path d="M5 13c.2 1 .9 1.7 1.9 1.9-1 .2-1.7.9-1.9 1.9-.2-1-.9-1.7-1.9-1.9 1-.2 1.7-.9 1.9-1.9z"/><path d="M17 14c.2.9.8 1.5 1.7 1.7-.9.2-1.5.8-1.7 1.7-.2-.9-.8-1.5-1.7-1.7.9-.2 1.5-.8 1.7-1.7z"/></svg>',
+    kitchen:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',
   };
 
   let items;
@@ -905,12 +912,13 @@ function buildNav(){
       {id:'profile',icon:ICO.profile,label:'Mi perfil'},
     ];
   } else if(cu.role==='staff'&&cu.staff_role==='manager'){
-    // Manager: pedidos, QR, staff, productos y perfil
+    // Manager: pedidos, QR, staff, productos, cocina y perfil
     items=[
       {id:'orders',icon:ICO.orders,label:'Pedidos'},
       {id:'products',icon:ICO.products,label:'Productos'},
       {id:'staff',icon:ICO.staff,label:'Staff'},
       {id:'qr',icon:ICO.qr,label:'QR Codes'},
+      {id:'kitchen',icon:ICO.kitchen,label:'Cocina'},
       {id:'profile',icon:ICO.profile,label:'Mi perfil'},
     ];
   } else {
@@ -922,6 +930,7 @@ function buildNav(){
       {id:'products',icon:ICO.products,label:'Productos'},
       {id:'staff',icon:ICO.staff,label:'Staff'},
       {id:'qr',icon:ICO.qr,label:'QR Codes'},
+      {id:'kitchen',icon:ICO.kitchen,label:'Cocina'},
       {id:'stores',icon:ICO.stores,label:'Tiendas'},
       {id:'payments',icon:ICO.card,label:'Pagos'},
       {id:'ai',icon:ICO.ai,label:'IA'},
@@ -953,7 +962,7 @@ function showPanel(pid){
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('panel-'+pid)?.classList.add('active');
   document.getElementById('nav-'+pid)?.classList.add('active');
-  const titles={dashboard:'Dashboard',orders:'Pedidos',customers:'Clientes',products:'Productos',staff:'Staff',qr:'Códigos QR',stores:'Tiendas',sa:'Superadmin',subs:'Suscripciones',mysub:'Mi suscripción',profile:'Mi perfil',payments:'Métodos de pago',ai:'IA · Insights','ai-sa':'IA · Plataforma'};
+  const titles={dashboard:'Dashboard',orders:'Pedidos',customers:'Clientes',products:'Productos',staff:'Staff',qr:'Códigos QR',kitchen:'Cocina & Bar',stores:'Tiendas',sa:'Superadmin',subs:'Suscripciones',mysub:'Mi suscripción',profile:'Mi perfil',payments:'Métodos de pago',ai:'IA · Insights','ai-sa':'IA · Plataforma'};
   document.getElementById('page-title').textContent=titles[pid]||pid;
   const showSel=['dashboard','orders','customers','products','staff'].includes(pid);
   document.getElementById('store-sel').style.display=showSel&&stores.length>1?'':'none';
@@ -965,6 +974,7 @@ function showPanel(pid){
   if(pid==='products') loadProds();
   if(pid==='staff') loadStaff();
   if(pid==='qr') loadQR();
+  if(pid==='kitchen') loadKitchenPanel();
   if(pid==='stores') renderStoreCards();
   if(pid==='sa') loadSA();
   if(pid==='subs') loadSubs();
@@ -1005,6 +1015,32 @@ function filterStores(){
   const q=(document.getElementById('stores-search')?.value||'').toLowerCase().trim();
   const list=q?stores.filter(s=>s.name.toLowerCase().includes(q)||(s.address||'').toLowerCase().includes(q)):stores;
   renderStoreCards(list);
+}
+
+function loadKitchenPanel(){
+  const g=document.getElementById('kitchen-store-grid');
+  if(!stores.length){g.innerHTML='<p style="color:var(--muted)">Sin tiendas disponibles.</p>';return;}
+  g.innerHTML=stores.map(s=>`
+    <div class="store-card">
+      <div class="store-card-top">
+        <div>
+          <div class="store-card-name">${esc(s.name)}</div>
+          ${s.address?`<div class="store-card-addr">${esc(s.address)}</div>`:''}
+        </div>
+        <span class="badge ${s.is_active?'active-b':'inactive-b'}">${s.is_active?'Activa':'Inactiva'}</span>
+      </div>
+      <div class="store-card-actions">
+        <button class="btn-sm primary" onclick="openKitchen(${s.id})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:.3rem"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+          Abrir tablero
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function openKitchen(){
+  localStorage.setItem('ph_tk',token);
+  window.open('/kitchen','_blank');
 }
 
 function renderStoreCards(list){

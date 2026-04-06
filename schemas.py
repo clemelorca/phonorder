@@ -133,7 +133,8 @@ class OrderPublicOut(BaseModel):
     order_code:Optional[str];customer_name:Optional[str];total:float
     status:OrderStatus;payment_status:PaymentStatus;updated_at:datetime
     order_qr_token:Optional[str]=None;store_id:Optional[int]=None
-    items:List[OrderItemOut]=[]
+    items:List[OrderItemOut]=[];notes:Optional[str]=None
+    qr:Optional[QRSimple]=None
     model_config={"from_attributes":True}
 class OrderStatusUpdate(BaseModel):
     status:OrderStatus

@@ -143,10 +143,15 @@ function renderOrder(order){
   const badgeCls=STATUS_BADGE[order.status]||'badge-confirmed';
 
   const itemsHtml=order.items.map(it=>`
-    <div class="item-row">
-      <span class="item-name">${it.qty}× ${it.product.name}</span>
-      <span class="item-price">$${(it.qty*it.unit_price).toLocaleString('es-CL')}</span>
+    <div class="item-row" style="flex-direction:column;align-items:flex-start;gap:.1rem">
+      <div style="display:flex;justify-content:space-between;width:100%">
+        <span class="item-name">${it.qty}× ${it.product.name}</span>
+        <span class="item-price">$${(it.qty*it.unit_price).toLocaleString('es-CL')}</span>
+      </div>
+      ${it.notes?`<span style="font-size:.75rem;color:var(--muted);font-style:italic">↳ ${it.notes}</span>`:''}
     </div>`).join('');
+
+  const tableLabel=order.qr?.table_label;
 
   card.innerHTML=`
     <div class="state-icon">🧾</div>
@@ -156,10 +161,12 @@ function renderOrder(order){
       <span class="badge ${badgeCls}">${statusLabel}</span>
       ${order.customer_name?`<span style="margin-left:.5rem;font-size:.8rem;color:var(--muted)">${order.customer_name}</span>`:''}
     </div>
+    ${tableLabel?`<div style="background:var(--primary-hl);color:var(--primary);border-radius:var(--r-md);padding:.45rem .85rem;font-size:.85rem;font-weight:700;margin-bottom:1rem;text-align:center">📍 ${tableLabel}</div>`:''}
     <div class="items-box">
       ${itemsHtml}
       <div class="total-row"><span>Total</span><span>$${order.total.toLocaleString('es-CL')}</span></div>
     </div>
+    ${order.notes?`<div style="background:var(--surface-off);border-radius:var(--r-md);padding:.6rem .85rem;font-size:.8rem;color:var(--muted);margin-bottom:1rem;text-align:left"><strong>Nota:</strong> ${order.notes}</div>`:''}
     <button class="confirm-btn" id="confirmBtn" onclick="confirmDelivery()">Marcar como entregado</button>
     ${_storeLogo?`<div style="display:block;width:100%;margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid var(--divider);text-align:center"><img src="${_storeLogo}" alt="Logo" style="display:block;margin:0 auto;max-height:52px;max-width:130px;object-fit:contain;opacity:.65"></div>`:''}
   `;

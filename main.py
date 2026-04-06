@@ -124,6 +124,8 @@ def deliver(): return FileResponse("static/deliver/index.html")
 def register_page(): return FileResponse("static/register/index.html")
 @app.get("/admin",include_in_schema=False)
 def admin(): return FileResponse("static/admin/index.html")
+@app.get("/kitchen",include_in_schema=False)
+def kitchen(): return FileResponse("static/kitchen/index.html")
 @app.get("/",include_in_schema=False)
 def root(): return FileResponse("design/index.html")
 
