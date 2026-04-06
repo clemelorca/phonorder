@@ -182,17 +182,9 @@ async function searchOrder(){
 async function showSingleView(){
   document.getElementById('appContent').innerHTML=`<div class="single-wrap"><div class="spinner">Cargando...</div></div>`;
   await loadSingle(code);
-  _connectSingleWS(code);
 }
 
 let _singleWS=null;
-function _connectSingleWS(code){
-  if(_singleWS) _singleWS.close();
-  const proto=location.protocol==='https:'?'wss':'ws';
-  _singleWS=new WebSocket(`${proto}://${location.host}/ws/order/${code}`);
-  _singleWS.onmessage=()=>loadSingle(code);
-  _singleWS.onclose=()=>setTimeout(()=>_connectSingleWS(code),3000);
-}
 
 async function loadSingle(c){
   try{
@@ -200,20 +192,15 @@ async function loadSingle(c){
     if(!r.ok){document.getElementById('appContent').innerHTML='<div class="single-wrap"><div class="order-card"><div class="error-msg">Pedido no encontrado</div></div></div>';return}
     const order=await r.json();
     document.getElementById('appContent').innerHTML=`<div class="single-wrap"><div class="order-card">${renderSingleCard(order)}</div></div>`;
-    // Conectar WS de la tienda si aún no está conectado al store correcto
     if(order.store_id&&(!_singleWS||_singleWS._storeId!==order.store_id)){
-      _connectStoreWS(order.store_id,c);
+      if(_singleWS) _singleWS.close();
+      const proto=location.protocol==='https:'?'wss':'ws';
+      _singleWS=new WebSocket(`${proto}://${location.host}/ws/store/${order.store_id}`);
+      _singleWS._storeId=order.store_id;
+      _singleWS.onmessage=()=>loadSingle(c);
+      _singleWS.onclose=()=>setTimeout(()=>loadSingle(c).then(()=>{_singleWS=null;}),3000);
     }
   }catch{}
-}
-
-function _connectStoreWS(sid,code){
-  if(_singleWS) _singleWS.close();
-  const proto=location.protocol==='https:'?'wss':'ws';
-  _singleWS=new WebSocket(`${proto}://${location.host}/ws/store/${sid}`);
-  _singleWS._storeId=sid;
-  _singleWS.onmessage=()=>loadSingle(code);
-  _singleWS.onclose=()=>setTimeout(()=>_connectStoreWS(sid,code),3000);
 }
 
 function renderSingleCard(order){
