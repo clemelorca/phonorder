@@ -1090,11 +1090,23 @@ async function loadDash(){
 }
 
 // ── ORDERS ──
+let _ordersWS=null,_ordersWSSid=null;
+function _connectOrdersWS(){
+  if(_ordersWS&&_ordersWSSid===currentSid) return;
+  if(_ordersWS) _ordersWS.close();
+  _ordersWSSid=currentSid;
+  const proto=location.protocol==='https:'?'wss':'ws';
+  _ordersWS=new WebSocket(`${proto}://${location.host}/ws/store/${currentSid}`);
+  _ordersWS.onmessage=()=>loadOrders();
+  _ordersWS.onclose=()=>{_ordersWS=null;_ordersWSSid=null;setTimeout(()=>{if(document.querySelector('#panel-orders.active'))_connectOrdersWS();},3000);};
+}
+
 async function loadOrders(){
   if(!currentSid) return;
   const st=document.getElementById('osf').value;
   const orders=await api('GET',`/stores/${currentSid}/orders`+(st?`?status=${st}`:''))||[];
   renderOrdersTable(orders,'orders-tbody',false);
+  _connectOrdersWS();
 }
 
 function statusBadge(s){
