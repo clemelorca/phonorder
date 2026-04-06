@@ -1023,14 +1023,14 @@ function loadKitchenPanel(){
   g.innerHTML=stores.map(s=>`
     <div class="store-card">
       <div class="store-card-top">
-        <div>
-          <div class="store-card-name">${esc(s.name)}</div>
-          ${s.address?`<div class="store-card-addr">${esc(s.address)}</div>`:''}
+        <div style="display:flex;align-items:center;gap:.75rem">
+          ${s.logo_b64?`<img src="${s.logo_b64}" style="width:44px;height:44px;border-radius:var(--r-lg);object-fit:cover;flex-shrink:0;border:1px solid var(--border)">`:`<div style="width:44px;height:44px;border-radius:var(--r-lg);background:var(--primary-hl);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0">🍽️</div>`}
+          <div><div class="store-card-name">${s.name}</div><div class="store-card-addr">${s.address||'Sin dirección'}</div></div>
         </div>
         <span class="badge ${s.is_active?'active-b':'inactive-b'}">${s.is_active?'Activa':'Inactiva'}</span>
       </div>
       <div class="store-card-actions">
-        <button class="btn-sm primary" onclick="openKitchen(${s.id})">
+        <button class="btn-sm primary" onclick="openKitchen()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:.3rem"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
           Abrir tablero
         </button>
