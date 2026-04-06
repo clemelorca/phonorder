@@ -342,18 +342,20 @@ async function checkout(){
     const r2=await fetch(`/orders/${order.id}/checkout`,{method:'POST'});
     if(r2.ok){
       const ck=await r2.json();
-      // Guardar token en sessionStorage para retorno
       sessionStorage.setItem('sk_order_id',order.id);
       sessionStorage.setItem('sk_qr_token',token);
-      // Redirigir al gateway
       window.location.href=ck.checkout_url;
       return;
     }
-    // Sin gateway configurado: confirmar directamente (modo demo)
-    await fetch(`/payments/${order.id}/confirm`,{method:'POST'});
-    const r3=await fetch(`/orders/${order.id}`);
-    const updated=await r3.json();
-    closeCart();showSuccess(updated);
+    // Intentar simulación sandbox
+    const r3=await fetch(`/orders/${order.id}/simulate-payment`,{method:'POST'});
+    if(r3.ok){
+      const sim=await r3.json();
+      const r4=await fetch(`/public/orders/${sim.order_code}`);
+      if(r4.ok){const o2=await r4.json();closeCart();showSuccess({...o2,order_code:sim.order_code});}
+      return;
+    }
+    throw new Error((await r3.json().catch(()=>({}))).detail||'No hay método de pago configurado');
   }catch(e){
     alert(e.message);btn.disabled=false;btn.textContent='Pagar ahora';
   }

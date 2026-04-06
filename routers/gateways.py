@@ -372,6 +372,18 @@ async def getnet_webhook(request: Request, db=Depends(get_db)):
         _confirm_order(o, db)
     return {"ok": True}
 
+@router.post("/orders/{oid}/simulate-payment")
+async def simulate_payment(oid: int, db=Depends(get_db)):
+    """Simula pago aprobado — solo disponible cuando el gateway está en modo sandbox/test."""
+    o = db.query(Order).filter(Order.id == oid).first()
+    if not o: raise HTTPException(404)
+    # Solo permitir si la tienda tiene MP en modo sandbox
+    creds = _get_cfg(o.store_id, "mercadopago", db)
+    if not creds or not creds.get("sandbox", False):
+        raise HTTPException(403, "Simulación solo disponible en modo sandbox")
+    _confirm_order(o, db)
+    return {"ok": True, "order_code": o.order_code}
+
 # ── shared confirm ────────────────────────────────────────────
 
 def _confirm_order(o: Order, db):
