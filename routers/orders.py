@@ -105,9 +105,15 @@ def order_delivery_qr(token:str,request:Request,db=Depends(get_db)):
     return {"qr_b64":b64,"order_code":o.order_code,"url":url}
 
 @router.post("/orders/deliver/{token}",response_model=OrderOut)
-async def deliver_order(token:str,db=Depends(get_db)):
+async def deliver_order(token:str,db=Depends(get_db),cu=Depends(get_current_user)):
     o=db.query(Order).filter(Order.order_qr_token==token).first()
     if not o: raise HTTPException(404,"QR de pedido inválido")
+    # Verificar que el usuario tiene acceso a esta tienda
+    from database import StoreStaff,UserRole
+    s=db.query(Store).filter(Store.id==o.store_id).first()
+    if cu.role!=UserRole.superadmin and s.owner_id!=cu.id:
+        if not db.query(StoreStaff).filter(StoreStaff.store_id==o.store_id,StoreStaff.user_id==cu.id).first():
+            raise HTTPException(403,"Sin permiso para esta tienda")
     if o.status==OrderStatus.delivered: raise HTTPException(400,"Pedido ya entregado")
     if o.status!=OrderStatus.ready: raise HTTPException(400,"El pedido no está listo para entrega")
     o.status=OrderStatus.delivered;o.updated_at=datetime.utcnow()

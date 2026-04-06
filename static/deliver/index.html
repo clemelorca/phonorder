@@ -80,8 +80,11 @@ const token=params.get('token');
 const STATUS_LABELS={'confirmed':'Confirmado','preparing':'En preparación','ready':'Listo para retirar','delivered':'Entregado'};
 const STATUS_BADGE={'confirmed':'badge-confirmed','preparing':'badge-preparing','ready':'badge-ready','delivered':'badge-delivered'};
 
+const authToken=localStorage.getItem('ph_t');
+
 async function load(){
   if(!token){render('error','QR inválido');return}
+  if(!authToken){renderLogin();return}
   try{
     const r=await fetch(`/deliver-qr/${token}`);
     if(!r.ok){render('error','Pedido no encontrado');return}
@@ -91,6 +94,28 @@ async function load(){
     const order=await r2.json();
     renderOrder(order);
   }catch{render('error','Error al cargar pedido')}
+}
+
+function renderLogin(){
+  document.getElementById('card').innerHTML=`
+    <div class="state-icon">🔒</div>
+    <div class="card-title">Inicia sesión para confirmar entrega</div>
+    <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.75rem;width:100%">
+      <input id="li-email" type="email" placeholder="Email" style="padding:.75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;width:100%;box-sizing:border-box">
+      <input id="li-pass" type="password" placeholder="Contraseña" style="padding:.75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;width:100%;box-sizing:border-box">
+      <button onclick="doLogin()" style="padding:.85rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer">Entrar</button>
+      <div id="li-err" style="color:#c00;font-size:.8rem;text-align:center"></div>
+    </div>`;
+}
+
+async function doLogin(){
+  const email=document.getElementById('li-email').value;
+  const pass=document.getElementById('li-pass').value;
+  const r=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+  if(!r.ok){document.getElementById('li-err').textContent='Credenciales incorrectas';return}
+  const d=await r.json();
+  localStorage.setItem('ph_t',d.access_token);
+  location.reload();
 }
 
 function render(type,msg){
@@ -136,7 +161,7 @@ async function confirmDelivery(){
   const btn=document.getElementById('confirmBtn');
   btn.disabled=true;btn.textContent='Procesando...';
   try{
-    const r=await fetch(`/orders/deliver/${token}`,{method:'POST'});
+    const r=await fetch(`/orders/deliver/${token}`,{method:'POST',headers:{'Authorization':'Bearer '+authToken}});
     if(!r.ok)throw new Error();
     const order=await r.json();
     document.getElementById('card').innerHTML=`
