@@ -182,7 +182,16 @@ async function searchOrder(){
 async function showSingleView(){
   document.getElementById('appContent').innerHTML=`<div class="single-wrap"><div class="spinner">Cargando...</div></div>`;
   await loadSingle(code);
-  setInterval(()=>loadSingle(code),15000);
+  _connectSingleWS(code);
+}
+
+let _singleWS=null;
+function _connectSingleWS(code){
+  if(_singleWS) _singleWS.close();
+  const proto=location.protocol==='https:'?'wss':'ws';
+  _singleWS=new WebSocket(`${proto}://${location.host}/ws/order/${code}`);
+  _singleWS.onmessage=()=>loadSingle(code);
+  _singleWS.onclose=()=>setTimeout(()=>_connectSingleWS(code),3000);
 }
 
 async function loadSingle(c){
@@ -191,7 +200,20 @@ async function loadSingle(c){
     if(!r.ok){document.getElementById('appContent').innerHTML='<div class="single-wrap"><div class="order-card"><div class="error-msg">Pedido no encontrado</div></div></div>';return}
     const order=await r.json();
     document.getElementById('appContent').innerHTML=`<div class="single-wrap"><div class="order-card">${renderSingleCard(order)}</div></div>`;
+    // Conectar WS de la tienda si aún no está conectado al store correcto
+    if(order.store_id&&(!_singleWS||_singleWS._storeId!==order.store_id)){
+      _connectStoreWS(order.store_id,c);
+    }
   }catch{}
+}
+
+function _connectStoreWS(sid,code){
+  if(_singleWS) _singleWS.close();
+  const proto=location.protocol==='https:'?'wss':'ws';
+  _singleWS=new WebSocket(`${proto}://${location.host}/ws/store/${sid}`);
+  _singleWS._storeId=sid;
+  _singleWS.onmessage=()=>loadSingle(code);
+  _singleWS.onclose=()=>setTimeout(()=>_connectStoreWS(sid,code),3000);
 }
 
 function renderSingleCard(order){
@@ -217,7 +239,7 @@ function renderSingleCard(order){
     <div class="steps">${stepsHtml}</div>
     ${itemsList?`<div class="order-items">${itemsList}</div>`:''}
     <div class="order-total">Total: $${order.total.toLocaleString('es-CL')}</div>
-    <div class="refresh-hint">Se actualiza automáticamente cada 15 s</div>
+    <div class="refresh-hint">🟢 En vivo</div>
     <button onclick="history.back()" style="margin-top:1.25rem;width:100%;padding:.75rem;border:1.5px solid var(--border);border-radius:var(--r-lg);background:transparent;color:var(--muted);font-size:.9rem;font-family:var(--font-b);cursor:pointer">← Volver</button>`;
 }
 
