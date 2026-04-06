@@ -217,7 +217,8 @@ function renderSingleCard(order){
     <div class="steps">${stepsHtml}</div>
     ${itemsList?`<div class="order-items">${itemsList}</div>`:''}
     <div class="order-total">Total: $${order.total.toLocaleString('es-CL')}</div>
-    <div class="refresh-hint">Se actualiza automáticamente cada 15 s</div>`;
+    <div class="refresh-hint">Se actualiza automáticamente cada 15 s</div>
+    <button onclick="history.back()" style="margin-top:1.25rem;width:100%;padding:.75rem;border:1.5px solid var(--border);border-radius:var(--r-lg);background:transparent;color:var(--muted);font-size:.9rem;font-family:var(--font-b);cursor:pointer">← Volver</button>`;
 }
 
 let storeInfo={};
