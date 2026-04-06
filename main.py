@@ -79,10 +79,10 @@ def _ensure_superadmin():
     finally:
         db.close()
 
-from routers import auth,superadmin,stores,products,staff,qrcodes,orders,payments,dashboard,websocket,menu,me,gateways,billing,ai_insights
+from routers import auth,superadmin,stores,products,staff,qrcodes,orders,payments,dashboard,websocket,menu,me,gateways,billing,ai_insights,contact
 for r in [auth.router,superadmin.router,stores.router,products.router,staff.router,
           qrcodes.router,orders.router,payments.router,dashboard.router,websocket.router,
-          menu.router,me.router,gateways.router,billing.router,ai_insights.router]:
+          menu.router,me.router,gateways.router,billing.router,ai_insights.router,contact.router]:
     app.include_router(r)
 
 app.mount("/static",StaticFiles(directory="static"),name="static")
