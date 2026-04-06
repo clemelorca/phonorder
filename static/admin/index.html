@@ -111,7 +111,22 @@ h1,h2,h3,h4{text-wrap:balance;line-height:1.15;}
 /* ── CARD ── */
 .card{background:var(--surface);border-radius:var(--r-xl);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;}
 .card-head{padding:1.25rem 1.5rem;border-bottom:1px solid var(--divider);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
-.ai-action{background:var(--primary-hl);color:var(--primary);border-radius:var(--r-md);padding:.5rem .75rem;font-size:var(--t-xs);font-weight:600;margin-top:auto;}
+.ai-action{background:var(--primary-hl);color:var(--primary);border-radius:var(--r-md);padding:.6rem .9rem;font-size:var(--t-xs);font-weight:600;margin-top:auto;display:flex;align-items:flex-start;gap:.5rem;line-height:1.4;}
+.ai-action::before{content:"→";flex-shrink:0;font-weight:800;}
+.ai-section-label{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:.3rem;}
+.ai-insight-text{font-size:var(--t-sm);color:var(--muted);line-height:1.55;}
+.ai-trend-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .65rem;border-radius:var(--r-full);font-size:var(--t-xs);font-weight:700;}
+.ai-trend-badge.up{background:var(--success-hl);color:var(--success);}
+.ai-trend-badge.eq{background:var(--surface-off);color:var(--muted);}
+.ai-trend-badge.dn{background:var(--danger-hl);color:var(--danger);}
+.ai-predict{background:var(--surface-off);border-radius:var(--r-md);padding:.55rem .8rem;font-size:var(--t-xs);color:var(--text);line-height:1.45;border-left:2.5px solid var(--primary);}
+.ai-card-icon{width:30px;height:30px;border-radius:var(--r-md);background:var(--primary-hl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-score-ring{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0;border:3px solid var(--border);position:relative;}
+.ai-divider{height:1px;background:var(--divider);margin:.75rem 0;}
+.ai-kv{display:flex;flex-direction:column;gap:.1rem;padding:.5rem 0;border-bottom:1px solid var(--divider);}
+.ai-kv:last-of-type{border:none;}
+.ai-kv-label{font-size:var(--t-xs);color:var(--muted);font-weight:600;}
+.ai-kv-val{font-size:var(--t-sm);color:var(--text);line-height:1.4;}
 .card-head h2{font-size:var(--t-base);font-weight:700;}
 .card-head-right{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;}
 
@@ -2377,29 +2392,64 @@ async function loadAI(){
   }
 }
 
+function _aiTrend(t){
+  if(t==='creciendo') return '<span class="ai-trend-badge up"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>Creciendo</span>';
+  if(t==='bajando')   return '<span class="ai-trend-badge dn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>Bajando</span>';
+  return '<span class="ai-trend-badge eq">— Estable</span>';
+}
+function _aiScoreColor(v){return v>=70?'var(--success)':v>=45?'var(--orange)':'var(--danger)';}
+function _aiScoreBg(v){return v>=70?'var(--success-hl)':v>=45?'#fef3c7':'var(--danger-hl)';}
+
+function _aiCardNew(svgPath,title,rows,action){
+  const rowsHtml=rows.map(([label,val])=>`<div class="ai-kv"><div class="ai-kv-label">${label}</div><div class="ai-kv-val">${val}</div></div>`).join('');
+  return `<div class="card" style="margin:0;display:flex;flex-direction:column">
+    <div class="card-head" style="gap:.75rem">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div class="ai-card-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">${svgPath}</svg></div>
+        <span style="font-weight:700;font-size:var(--t-sm)">${title}</span>
+      </div>
+    </div>
+    <div style="padding:1rem 1.25rem;flex:1;display:flex;flex-direction:column;gap:0">${rowsHtml}</div>
+    ${action?`<div style="padding:.75rem 1.25rem;border-top:1px solid var(--divider)"><div class="ai-action">${action}</div></div>`:''}
+  </div>`;
+}
+
 function renderAI(ins){
   const body=document.getElementById('ai-body');
-  const trend={creciendo:'📈',estable:'➡️',bajando:'📉'};
-  const scoreColor=ins.score_negocio?.valor>=70?'var(--success)':ins.score_negocio?.valor>=45?'var(--orange)':'var(--danger)';
+  const sv=ins.score_negocio?.valor??0;
+  const sc=_aiScoreColor(sv);
+  const sb=_aiScoreBg(sv);
   const alertHtml=ins.alerta?.tiene_alerta&&ins.alerta?.mensaje?`
-    <div style="background:var(--danger-hl);border:1px solid var(--danger);border-radius:var(--r-lg);padding:1rem 1.25rem;display:flex;gap:.75rem;align-items:flex-start">
-      <span style="font-size:1.25rem;flex-shrink:0">🚨</span>
-      <div><div style="font-weight:700;color:var(--danger);font-size:var(--t-sm)">Alerta</div><div style="font-size:var(--t-sm);margin-top:.2rem">${ins.alerta.mensaje}</div></div>
+    <div style="background:var(--danger-hl);border:1px solid var(--danger);border-radius:var(--r-lg);padding:.9rem 1.1rem;display:flex;gap:.75rem;align-items:flex-start">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" style="flex-shrink:0;margin-top:.1rem"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div><div style="font-weight:700;color:var(--danger);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.04em">Alerta</div><div style="font-size:var(--t-sm);margin-top:.2rem;color:var(--text)">${ins.alerta.mensaje}</div></div>
     </div>`:'';
+
+  const SVG={
+    ventas:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    productos:'<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>',
+    ops:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    clientes:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
+    staff:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  };
 
   body.innerHTML=`
     ${alertHtml}
-    <!-- Score + resumen -->
-    <div class="card" style="margin-bottom:0">
-      <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
-        <div style="text-align:center;flex-shrink:0">
-          <div style="font-size:2.5rem;font-weight:800;color:${scoreColor};font-family:var(--font-d);line-height:1">${ins.score_negocio?.valor??'—'}</div>
-          <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.2rem">Score</div>
-          <div style="font-size:var(--t-xs);font-weight:700;color:${scoreColor}">${ins.score_negocio?.label??''}</div>
+
+    <!-- Header: score + resumen ejecutivo -->
+    <div class="card" style="margin:0">
+      <div style="display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem;flex-wrap:wrap">
+        <div style="width:72px;height:72px;border-radius:50%;background:${sb};border:3px solid ${sc};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:1.6rem;font-weight:800;color:${sc};font-family:var(--font-d);line-height:1">${sv}</span>
+          <span style="font-size:.55rem;font-weight:700;color:${sc};text-transform:uppercase;letter-spacing:.05em">Score</span>
         </div>
-        <div style="flex:1;min-width:200px">
-          <div style="font-size:var(--t-sm);line-height:1.6">${ins.resumen_ejecutivo||''}</div>
-          <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.35rem">${ins.score_negocio?.detalle??''}</div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-family:var(--font-d);font-size:1.1rem;color:var(--text);line-height:1.5;margin-bottom:.35rem">${ins.resumen_ejecutivo||''}</div>
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <span style="font-size:var(--t-xs);font-weight:700;color:${sc}">${ins.score_negocio?.label||''}</span>
+            <span style="color:var(--faint)">·</span>
+            <span style="font-size:var(--t-xs);color:var(--muted)">${ins.score_negocio?.detalle||''}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2407,43 +2457,36 @@ function renderAI(ins){
     <!-- Grid de insights -->
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
 
-      ${_aiCard('📊','Ventas',`
-        <div style="font-size:1.5rem;margin-bottom:.5rem">${trend[ins.ventas?.tendencia]||'➡️'} <span style="font-size:var(--t-sm);font-weight:700;text-transform:capitalize">${ins.ventas?.tendencia||''}</span></div>
-        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.75rem">${ins.ventas?.insight||''}</div>
-        <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.35rem"><strong>Predicción:</strong> ${ins.ventas?.prediccion_semana||''}</div>
-        <div class="ai-action">${ins.ventas?.accion||''}</div>`)}
+      ${_aiCardNew(SVG.ventas,'Ventas',[
+        ['Tendencia',_aiTrend(ins.ventas?.tendencia)],
+        ['Análisis',ins.ventas?.insight||'—'],
+        ['Predicción próxima semana',`<span class="ai-predict">${ins.ventas?.prediccion_semana||'—'}</span>`],
+      ],ins.ventas?.accion)}
 
-      ${_aiCard('🍽️','Productos',`
-        <div style="font-size:var(--t-sm);margin-bottom:.5rem"><strong>⭐ Estrella:</strong> ${ins.productos?.estrella||''}</div>
-        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.75rem"><strong>💡 Oportunidad:</strong> ${ins.productos?.oportunidad||''}</div>
-        <div class="ai-action">${ins.productos?.accion||''}</div>`)}
+      ${_aiCardNew(SVG.productos,'Productos',[
+        ['Producto estrella',ins.productos?.estrella||'—'],
+        ['Oportunidad',ins.productos?.oportunidad||'—'],
+      ],ins.productos?.accion)}
 
-      ${_aiCard('⏰','Operaciones',`
-        <div style="font-size:var(--t-sm);margin-bottom:.4rem"><strong>Hora pico:</strong> ${ins.operaciones?.hora_pico||''}</div>
-        <div style="font-size:var(--t-sm);margin-bottom:.4rem"><strong>Día fuerte:</strong> ${ins.operaciones?.dia_fuerte||''}</div>
-        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.75rem"><strong>Día flojo:</strong> ${ins.operaciones?.dia_debil||''}</div>
-        <div class="ai-action">${ins.operaciones?.accion||''}</div>`)}
+      ${_aiCardNew(SVG.ops,'Operaciones',[
+        ['Hora pico',ins.operaciones?.hora_pico||'—'],
+        ['Día más fuerte',ins.operaciones?.dia_fuerte||'—'],
+        ['Día más flojo',ins.operaciones?.dia_debil||'—'],
+      ],ins.operaciones?.accion)}
 
-      ${_aiCard('👥','Clientes',`
-        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.75rem">${ins.clientes?.fidelizacion||''}</div>
-        <div class="ai-action">${ins.clientes?.accion||''}</div>`)}
+      ${_aiCardNew(SVG.clientes,'Clientes',[
+        ['Fidelización',ins.clientes?.fidelizacion||'—'],
+      ],ins.clientes?.accion)}
 
-      ${_aiCard('🧑‍💼','Staff & Turnos',`
-        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.75rem">${ins.staff?.recomendacion_turnos||''}</div>
-        <div class="ai-action">${ins.staff?.accion||''}</div>`)}
+      ${_aiCardNew(SVG.staff,'Staff & Turnos',[
+        ['Recomendación de turnos',ins.staff?.recomendacion_turnos||'—'],
+      ],ins.staff?.accion)}
 
     </div>
-    <div style="font-size:var(--t-xs);color:var(--faint);text-align:center;padding-top:.5rem">Generado con IA · Los análisis son orientativos y se basan en tus datos históricos</div>`;
-}
-
-function _aiCard(icon,title,content){
-  return `<div class="card" style="margin:0;display:flex;flex-direction:column;gap:.5rem">
-    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
-      <span style="font-size:1.1rem">${icon}</span>
-      <span style="font-weight:700;font-size:var(--t-sm)">${title}</span>
-    </div>
-    ${content}
-  </div>`;
+    <div style="font-size:var(--t-xs);color:var(--faint);text-align:center;display:flex;align-items:center;justify-content:center;gap:.5rem">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Generado con IA · Análisis orientativo basado en tus datos históricos
+    </div>`;
 }
 
 async function loadSAAI(){
@@ -2463,50 +2506,65 @@ async function loadSAAI(){
 
 function renderSAAI(ins){
   const body=document.getElementById('sa-ai-body');
-  const trend={creciendo:'📈',estable:'➡️',bajando:'📉'};
-  const scoreColor=ins.score_plataforma?.valor>=70?'var(--success)':ins.score_plataforma?.valor>=45?'var(--orange)':'var(--danger)';
+  const sv=ins.score_plataforma?.valor??0;
+  const sc=_aiScoreColor(sv);
+  const sb=_aiScoreBg(sv);
   const alertHtml=ins.alerta?.tiene_alerta&&ins.alerta?.mensaje?`
-    <div style="background:var(--danger-hl);border:1px solid var(--danger);border-radius:var(--r-lg);padding:1rem 1.25rem;margin:1.25rem 1.5rem 0;display:flex;gap:.75rem;align-items:flex-start">
-      <span style="font-size:1.25rem;flex-shrink:0">🚨</span>
-      <div><div style="font-weight:700;color:var(--danger);font-size:var(--t-sm)">Alerta de plataforma</div><div style="font-size:var(--t-sm);margin-top:.2rem">${ins.alerta.mensaje}</div></div>
+    <div style="background:var(--danger-hl);border:1px solid var(--danger);border-radius:var(--r-lg);padding:.9rem 1.1rem;margin:1.25rem 1.5rem 0;display:flex;gap:.75rem;align-items:flex-start">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" style="flex-shrink:0;margin-top:.1rem"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div><div style="font-weight:700;color:var(--danger);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.04em">Alerta de plataforma</div><div style="font-size:var(--t-sm);margin-top:.2rem;color:var(--text)">${ins.alerta.mensaje}</div></div>
     </div>`:'';
+
+  const SVG2={
+    growth:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+    revenue:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+    retention:'<path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>',
+    stores:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    plans:'<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>',
+  };
 
   body.innerHTML=`
     ${alertHtml}
-    <div style="padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;border-bottom:1px solid var(--divider)">
-      <div style="text-align:center;flex-shrink:0">
-        <div style="font-size:2.5rem;font-weight:800;color:${scoreColor};font-family:var(--font-d);line-height:1">${ins.score_plataforma?.valor??'—'}</div>
-        <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.2rem">Score</div>
-        <div style="font-size:var(--t-xs);font-weight:700;color:${scoreColor}">${ins.score_plataforma?.label??''}</div>
+    <div style="display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem;flex-wrap:wrap;border-bottom:1px solid var(--divider)">
+      <div style="width:72px;height:72px;border-radius:50%;background:${sb};border:3px solid ${sc};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+        <span style="font-size:1.6rem;font-weight:800;color:${sc};font-family:var(--font-d);line-height:1">${sv}</span>
+        <span style="font-size:.55rem;font-weight:700;color:${sc};text-transform:uppercase;letter-spacing:.05em">Score</span>
       </div>
-      <div style="flex:1;min-width:200px">
-        <div style="font-size:var(--t-sm);line-height:1.6">${ins.resumen_ejecutivo||''}</div>
-        <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.35rem">${ins.score_plataforma?.detalle??''}</div>
+      <div style="flex:1;min-width:180px">
+        <div style="font-family:var(--font-d);font-size:1.1rem;color:var(--text);line-height:1.5;margin-bottom:.35rem">${ins.resumen_ejecutivo||''}</div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span style="font-size:var(--t-xs);font-weight:700;color:${sc}">${ins.score_plataforma?.label||''}</span>
+          <span style="color:var(--faint)">·</span>
+          <span style="font-size:var(--t-xs);color:var(--muted)">${ins.score_plataforma?.detalle||''}</span>
+        </div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;padding:1.25rem 1.5rem">
-      ${_aiCard('📈','Crecimiento',`
-        <div style="font-size:1.5rem;margin-bottom:.5rem">${trend[ins.crecimiento?.tendencia]||'➡️'} <span style="font-size:var(--t-sm);font-weight:700;text-transform:capitalize">${ins.crecimiento?.tendencia||''}</span></div>
-        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.5rem">${ins.crecimiento?.insight||''}</div>
-        <div style="font-size:var(--t-xs);margin-bottom:.75rem"><strong>Predicción:</strong> ${ins.crecimiento?.prediccion_mes_siguiente||''}</div>
-        <div class="ai-action">${ins.crecimiento?.accion||''}</div>`)}
-      ${_aiCard('💰','Revenue & MRR',`
-        <div style="font-size:var(--t-sm);margin-bottom:.5rem">${ins.revenue?.mrr_insight||''}</div>
-        <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.75rem"><strong>Upsell:</strong> ${ins.revenue?.oportunidad_upsell||''}</div>
-        <div class="ai-action">${ins.revenue?.accion||''}</div>`)}
-      ${_aiCard('🔄','Retención & Churn',`
-        <div style="font-size:var(--t-sm);margin-bottom:.5rem">${ins.retencion?.churn_analisis||''}</div>
-        <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.75rem">${ins.retencion?.alerta_past_due||''}</div>
-        <div class="ai-action">${ins.retencion?.accion||''}</div>`)}
-      ${_aiCard('🏪','Tiendas',`
-        <div style="font-size:var(--t-sm);margin-bottom:.5rem">${ins.tiendas?.top_performers||''}</div>
-        <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.75rem"><strong>En riesgo:</strong> ${ins.tiendas?.tiendas_en_riesgo||''}</div>
-        <div class="ai-action">${ins.tiendas?.accion||''}</div>`)}
-      ${_aiCard('📦','Planes & Pricing',`
-        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.75rem">${ins.planes?.distribucion_insight||''}</div>
-        <div class="ai-action">${ins.planes?.accion||''}</div>`)}
+      ${_aiCardNew(SVG2.growth,'Crecimiento',[
+        ['Tendencia',_aiTrend(ins.crecimiento?.tendencia)],
+        ['Análisis',ins.crecimiento?.insight||'—'],
+        ['Predicción próximo mes',`<span class="ai-predict">${ins.crecimiento?.prediccion_mes_siguiente||'—'}</span>`],
+      ],ins.crecimiento?.accion)}
+      ${_aiCardNew(SVG2.revenue,'Revenue & MRR',[
+        ['Estado del MRR',ins.revenue?.mrr_insight||'—'],
+        ['Oportunidad de upsell',ins.revenue?.oportunidad_upsell||'—'],
+      ],ins.revenue?.accion)}
+      ${_aiCardNew(SVG2.retention,'Retención & Churn',[
+        ['Análisis de churn',ins.retencion?.churn_analisis||'—'],
+        ['Suscripciones vencidas',ins.retencion?.alerta_past_due||'—'],
+      ],ins.retencion?.accion)}
+      ${_aiCardNew(SVG2.stores,'Tiendas',[
+        ['Top performers',ins.tiendas?.top_performers||'—'],
+        ['En riesgo',ins.tiendas?.tiendas_en_riesgo||'—'],
+      ],ins.tiendas?.accion)}
+      ${_aiCardNew(SVG2.plans,'Planes & Pricing',[
+        ['Distribución',ins.planes?.distribucion_insight||'—'],
+      ],ins.planes?.accion)}
     </div>
-    <div style="font-size:var(--t-xs);color:var(--faint);text-align:center;padding:.5rem 1.5rem 1.25rem">Generado con IA · Análisis orientativo basado en datos históricos de la plataforma</div>`;
+    <div style="font-size:var(--t-xs);color:var(--faint);text-align:center;padding:0 1.5rem 1.25rem;display:flex;align-items:center;justify-content:center;gap:.5rem">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Generado con IA · Análisis orientativo basado en datos históricos de la plataforma
+    </div>`;
 }
 
 // ── MI PERFIL ──
