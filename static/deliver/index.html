@@ -161,7 +161,7 @@ function renderOrder(order){
       <div class="total-row"><span>Total</span><span>$${order.total.toLocaleString('es-CL')}</span></div>
     </div>
     <button class="confirm-btn" id="confirmBtn" onclick="confirmDelivery()">Marcar como entregado</button>
-    ${_storeLogo?`<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--divider)"><img src="${_storeLogo}" alt="Logo" style="max-height:48px;max-width:120px;object-fit:contain;opacity:.7"></div>`:''}
+    ${_storeLogo?`<div style="display:block;width:100%;margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid var(--divider);text-align:center"><img src="${_storeLogo}" alt="Logo" style="display:block;margin:0 auto;max-height:52px;max-width:130px;object-fit:contain;opacity:.65"></div>`:''}
   `;
 }
 
