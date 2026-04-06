@@ -53,7 +53,20 @@ async def limit_body_size(request: Request, call_next):
 @app.on_event("startup")
 def startup():
     create_tables()
+    _run_migrations()
     _ensure_superadmin()
+
+def _run_migrations():
+    from database import engine
+    with engine.connect() as conn:
+        # Add tip column if not exists (compatible with SQLite and PostgreSQL)
+        try:
+            conn.execute(__import__('sqlalchemy').text(
+                "ALTER TABLE orders ADD COLUMN tip FLOAT DEFAULT 0.0"
+            ))
+            conn.commit()
+        except Exception:
+            pass  # Column already exists
 
 def _ensure_superadmin():
     import os
@@ -82,7 +95,8 @@ def _ensure_superadmin():
 from routers import auth,superadmin,stores,products,staff,qrcodes,orders,payments,dashboard,websocket,menu,me,gateways,billing,ai_insights,contact
 for r in [auth.router,superadmin.router,stores.router,products.router,staff.router,
           qrcodes.router,orders.router,payments.router,dashboard.router,websocket.router,
-          menu.router,me.router,gateways.router,billing.router,ai_insights.router,contact.router]:
+          menu.router,me.router,gateways.router,billing.router,ai_insights.router,
+          ai_insights.sa_router,contact.router]:
     app.include_router(r)
 
 app.mount("/static",StaticFiles(directory="static"),name="static")

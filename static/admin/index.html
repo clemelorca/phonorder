@@ -2508,7 +2508,7 @@ async function loadSAAI(){
   btn.disabled=true;btn.textContent='Analizando...';
   body.innerHTML=`<div style="text-align:center;padding:3rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.75rem">⏳</div><div style="font-size:var(--t-sm)">Analizando datos de la plataforma...</div></div>`;
   try{
-    const d=await api('GET','/stores/sa-ai-insights');
+    const d=await api('GET','/superadmin/ai-insights');
     renderSAAI(d.insights);
   }catch(e){
     body.innerHTML=`<div style="text-align:center;padding:3rem;color:var(--danger)"><div style="font-size:2rem;margin-bottom:.75rem">⚠️</div><div>${e.message||'Error al generar análisis'}</div></div>`;

@@ -7,6 +7,7 @@ from datetime import datetime,date,timedelta
 import os,json,httpx
 
 router=APIRouter(prefix="/stores",tags=["ai"])
+sa_router=APIRouter(prefix="/superadmin",tags=["ai"])
 
 def _chk(sid,cu,db):
     s=db.query(Store).filter(Store.id==sid).first()
@@ -235,7 +236,7 @@ def _build_sa_context(db):
         "tendencia_14_dias":daily,
     }
 
-@router.get("/sa-ai-insights")
+@sa_router.get("/ai-insights")
 async def sa_ai_insights(db=Depends(get_db),_=Depends(require_superadmin)):
     api_key=os.getenv("GROQ_API_KEY","")
     if not api_key:
