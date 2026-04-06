@@ -84,6 +84,7 @@ const STATUS_BADGE={'confirmed':'badge-confirmed','preparing':'badge-preparing',
 const authToken=localStorage.getItem('ph_t');
 
 let _storeLogo=null;
+let _eta=null;
 
 async function load(){
   if(!token){render('error','QR inválido');return}
@@ -98,6 +99,23 @@ async function load(){
     if(order.store_id){
       const rs=await fetch(`/public/stores/${order.store_id}`).catch(()=>null);
       if(rs&&rs.ok){const sd=await rs.json();_storeLogo=sd.logo||null;}
+
+      // Tiempo estimado solo si el pedido aún no está listo
+      if(['confirmed','preparing'].includes(order.status)){
+        const rb=await fetch(`/public/stores/${order.store_id}/board`).catch(()=>null);
+        if(rb&&rb.ok){
+          const board=await rb.json();
+          const ahead=board.filter(o=>
+            ['confirmed','preparing'].includes(o.status)&&
+            new Date(o.created_at)<new Date(order.created_at)
+          ).length;
+          const totalItems=order.items.reduce((s,it)=>s+it.qty,0);
+          const mins=Math.max(3, ahead*5 + Math.ceil(totalItems*1));
+          _eta=`${mins}–${mins+5} min`;
+        }
+      } else {
+        _eta=null;
+      }
     }
     renderOrder(order);
   }catch{render('error','Error al cargar pedido')}
@@ -143,6 +161,11 @@ function renderOrder(order){
   const statusLabel=STATUS_LABELS[order.status]||order.status;
   const badgeCls=STATUS_BADGE[order.status]||'badge-confirmed';
 
+  // Iniciar polling si el pedido aún no está listo
+  if(['confirmed','preparing'].includes(order.status)&&order.order_code){
+    startReadyPolling(order.order_code);
+  }
+
   const itemsHtml=order.items.map(it=>`
     <div class="item-row" style="flex-direction:column;align-items:flex-start;gap:.1rem">
       <div style="display:flex;justify-content:space-between;width:100%">
@@ -163,6 +186,7 @@ function renderOrder(order){
       ${order.customer_name?`<span style="margin-left:.5rem;font-size:.8rem;color:var(--muted)">${order.customer_name}</span>`:''}
     </div>
     ${tableLabel?`<div style="background:var(--primary-hl);color:var(--primary);border-radius:var(--r-md);padding:.45rem .85rem;font-size:.85rem;font-weight:700;margin-bottom:1rem;text-align:center">📍 ${tableLabel}</div>`:''}
+    ${_eta?`<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--r-md);padding:.6rem .85rem;font-size:.85rem;color:#7d5800;margin-bottom:1rem;text-align:center">⏱ Tiempo estimado: <strong>${_eta}</strong></div>`:''}
     <div class="items-box">
       ${itemsHtml}
       <div class="total-row"><span>Total</span><span>$${order.total.toLocaleString('es-CL')}</span></div>
@@ -192,6 +216,40 @@ async function confirmDelivery(){
 }
 
 load();
+
+// Polling: avisar cuando el pedido pase a "listo"
+let _pollInterval=null;
+let _orderCode=null;
+
+function startReadyPolling(orderCode){
+  _orderCode=orderCode;
+  if(_pollInterval) clearInterval(_pollInterval);
+  // Pedir permiso de notificaciones
+  if(Notification.permission==='default') Notification.requestPermission();
+  _pollInterval=setInterval(async()=>{
+    try{
+      const r=await fetch(`/public/orders/${_orderCode}`);
+      if(!r.ok) return;
+      const o=await r.json();
+      if(o.status==='ready'){
+        clearInterval(_pollInterval);
+        _pollInterval=null;
+        showReadyAlert();
+      }
+    }catch{}
+  },15000);
+}
+
+function showReadyAlert(){
+  if(Notification.permission==='granted'){
+    new Notification('¡Pedido listo! 🎉',{body:`El pedido ${_orderCode} ya puede ser retirado.`,icon:'/static/so-fav.png'});
+  }
+  const banner=document.createElement('div');
+  banner.style.cssText='position:fixed;top:0;left:0;right:0;background:#437a22;color:#fff;padding:1rem 1.5rem;text-align:center;font-size:1rem;font-weight:700;z-index:999;box-shadow:0 2px 12px rgba(0,0,0,.2)';
+  banner.innerHTML='🎉 ¡Pedido listo para retirar! &nbsp;<a onclick="location.reload()" style="color:#fff;text-decoration:underline;cursor:pointer">Actualizar</a>';
+  document.body.prepend(banner);
+  if(navigator.vibrate) navigator.vibrate([300,100,300]);
+}
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem">
   <a href="https://www.skanorder.com" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">
