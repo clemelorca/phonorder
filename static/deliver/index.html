@@ -82,6 +82,8 @@ const STATUS_BADGE={'confirmed':'badge-confirmed','preparing':'badge-preparing',
 
 const authToken=localStorage.getItem('ph_t');
 
+let _storeLogo=null;
+
 async function load(){
   if(!token){render('error','QR inválido');return}
   if(!authToken){renderLogin();return}
@@ -92,6 +94,10 @@ async function load(){
     const r2=await fetch(`/public/orders/${d.order_code}`);
     if(!r2.ok){render('error','Error al cargar pedido');return}
     const order=await r2.json();
+    if(order.store_id){
+      const rs=await fetch(`/public/stores/${order.store_id}`).catch(()=>null);
+      if(rs&&rs.ok){const sd=await rs.json();_storeLogo=sd.logo||null;}
+    }
     renderOrder(order);
   }catch{render('error','Error al cargar pedido')}
 }
@@ -154,7 +160,9 @@ function renderOrder(order){
       ${itemsHtml}
       <div class="total-row"><span>Total</span><span>$${order.total.toLocaleString('es-CL')}</span></div>
     </div>
-    <button class="confirm-btn" id="confirmBtn" onclick="confirmDelivery()">Marcar como entregado</button>`;
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmDelivery()">Marcar como entregado</button>
+    ${_storeLogo?`<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--divider)"><img src="${_storeLogo}" alt="Logo" style="max-height:48px;max-width:120px;object-fit:contain;opacity:.7"></div>`:''}
+  `;
 }
 
 async function confirmDelivery(){
@@ -179,7 +187,7 @@ load();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem">
   <a href="https://www.skanorder.com" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">
-    <img src="/static/skanorder.svg" alt="Skanorder" style="height:16px;max-width:90px;opacity:.35">
+    <img src="/static/skanorder.svg" alt="Skanorder" style="height:21px;max-width:120px;opacity:.35">
   </a>
 </footer>
 </body>
