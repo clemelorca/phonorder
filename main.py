@@ -58,15 +58,25 @@ def startup():
 
 def _run_migrations():
     from database import engine
+    sa = __import__('sqlalchemy')
+    migrations = [
+        "ALTER TABLE orders ADD COLUMN tip FLOAT DEFAULT 0.0",
+        "ALTER TABLE orders ADD COLUMN order_code VARCHAR(20)",
+        "ALTER TABLE orders ADD COLUMN order_qr_token VARCHAR(64)",
+        "ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP",
+        "ALTER TABLE stores ADD COLUMN promo_media_url VARCHAR(255)",
+        "ALTER TABLE stores ADD COLUMN promo_media_type VARCHAR(10)",
+        "ALTER TABLE stores ADD COLUMN primary_color VARCHAR(7) DEFAULT '#01696f'",
+        "ALTER TABLE subscriptions ADD COLUMN mp_preapproval_id VARCHAR(120)",
+        "ALTER TABLE subscriptions ADD COLUMN mp_preapproval_url TEXT",
+    ]
     with engine.connect() as conn:
-        # Add tip column if not exists (compatible with SQLite and PostgreSQL)
-        try:
-            conn.execute(__import__('sqlalchemy').text(
-                "ALTER TABLE orders ADD COLUMN tip FLOAT DEFAULT 0.0"
-            ))
-            conn.commit()
-        except Exception:
-            pass  # Column already exists
+        for sql in migrations:
+            try:
+                conn.execute(sa.text(sql))
+                conn.commit()
+            except Exception:
+                pass  # Column already exists or not applicable
 
 def _ensure_superadmin():
     import os
