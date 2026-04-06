@@ -134,7 +134,10 @@ async def create_checkout(oid: int, request: Request, db=Depends(get_db)):
     title = f"Pedido {o.order_code or '#'+str(o.id)}"
 
     if chosen_gw == GatewayType.mercadopago:
-        url = await _mp_checkout(o, chosen_creds, title, base, db)
+        if chosen_creds.get("sandbox", False):
+            url = f"{base}/pay/sandbox-confirm?order_id={o.id}"
+        else:
+            url = await _mp_checkout(o, chosen_creds, title, base, db)
     elif chosen_gw == GatewayType.webpay:
         url = await _webpay_checkout(o, chosen_creds, base, db)
     elif chosen_gw == GatewayType.getnet:
@@ -371,6 +374,17 @@ async def getnet_webhook(request: Request, db=Depends(get_db)):
     if status in ("approved","paid","success"):
         _confirm_order(o, db)
     return {"ok": True}
+
+@router.get("/pay/sandbox-confirm")
+async def sandbox_confirm(order_id: int, request: Request, db=Depends(get_db)):
+    """Confirma automáticamente en modo sandbox — simula pago aprobado."""
+    o = db.query(Order).filter(Order.id == order_id).first()
+    if not o: raise HTTPException(404)
+    creds = _get_cfg(o.store_id, "mercadopago", db)
+    if not creds or not creds.get("sandbox", False):
+        raise HTTPException(403, "Solo disponible en modo sandbox")
+    _confirm_order(o, db)
+    return RedirectResponse(f"/shop?payment=success&order_code={o.order_code}")
 
 @router.post("/orders/{oid}/simulate-payment")
 async def simulate_payment(oid: int, db=Depends(get_db)):
