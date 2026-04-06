@@ -540,6 +540,18 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
         <div class="card">
           <div class="tw"><table><thead><tr><th>Tienda</th><th>Owner</th><th>Plan</th><th>Pedidos</th><th>Revenue</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="sa-stores-tbody"></tbody></table></div>
         </div>
+
+        <!-- IA Superadmin -->
+        <div class="card">
+          <div class="card-head">
+            <div><h2>🤖 IA · Análisis de plataforma</h2><div style="font-size:var(--t-xs);color:var(--muted);margin-top:.15rem">Insights estratégicos basados en todos los datos de Skanorder</div></div>
+            <button class="btn-sm primary" onclick="loadSAAI()" id="sa-ai-btn">✨ Generar análisis</button>
+          </div>
+          <div id="sa-ai-body" style="padding:2rem;text-align:center;color:var(--muted)">
+            <div style="font-size:2rem;margin-bottom:.75rem">🤖</div>
+            <div style="font-size:var(--t-sm)">Haz clic en <strong>Generar análisis</strong> para obtener predicciones y recomendaciones estratégicas de toda la plataforma.</div>
+          </div>
+        </div>
       </div>
 
       <!-- ═══ SUSCRIPCIONES ═══ -->
@@ -2432,6 +2444,69 @@ function _aiCard(icon,title,content){
     </div>
     ${content}
   </div>`;
+}
+
+async function loadSAAI(){
+  const btn=document.getElementById('sa-ai-btn');
+  const body=document.getElementById('sa-ai-body');
+  btn.disabled=true;btn.textContent='Analizando...';
+  body.innerHTML=`<div style="text-align:center;padding:3rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.75rem">⏳</div><div style="font-size:var(--t-sm)">Analizando datos de la plataforma...</div></div>`;
+  try{
+    const d=await api('GET','/stores/sa-ai-insights');
+    renderSAAI(d.insights);
+  }catch(e){
+    body.innerHTML=`<div style="text-align:center;padding:3rem;color:var(--danger)"><div style="font-size:2rem;margin-bottom:.75rem">⚠️</div><div>${e.message||'Error al generar análisis'}</div></div>`;
+  }finally{
+    btn.disabled=false;btn.textContent='✨ Generar análisis';
+  }
+}
+
+function renderSAAI(ins){
+  const body=document.getElementById('sa-ai-body');
+  const trend={creciendo:'📈',estable:'➡️',bajando:'📉'};
+  const scoreColor=ins.score_plataforma?.valor>=70?'var(--success)':ins.score_plataforma?.valor>=45?'var(--orange)':'var(--danger)';
+  const alertHtml=ins.alerta?.tiene_alerta&&ins.alerta?.mensaje?`
+    <div style="background:var(--danger-hl);border:1px solid var(--danger);border-radius:var(--r-lg);padding:1rem 1.25rem;margin:1.25rem 1.5rem 0;display:flex;gap:.75rem;align-items:flex-start">
+      <span style="font-size:1.25rem;flex-shrink:0">🚨</span>
+      <div><div style="font-weight:700;color:var(--danger);font-size:var(--t-sm)">Alerta de plataforma</div><div style="font-size:var(--t-sm);margin-top:.2rem">${ins.alerta.mensaje}</div></div>
+    </div>`:'';
+
+  body.innerHTML=`
+    ${alertHtml}
+    <div style="padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;border-bottom:1px solid var(--divider)">
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:2.5rem;font-weight:800;color:${scoreColor};font-family:var(--font-d);line-height:1">${ins.score_plataforma?.valor??'—'}</div>
+        <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.2rem">Score</div>
+        <div style="font-size:var(--t-xs);font-weight:700;color:${scoreColor}">${ins.score_plataforma?.label??''}</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:var(--t-sm);line-height:1.6">${ins.resumen_ejecutivo||''}</div>
+        <div style="font-size:var(--t-xs);color:var(--muted);margin-top:.35rem">${ins.score_plataforma?.detalle??''}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;padding:1.25rem 1.5rem">
+      ${_aiCard('📈','Crecimiento',`
+        <div style="font-size:1.5rem;margin-bottom:.5rem">${trend[ins.crecimiento?.tendencia]||'➡️'} <span style="font-size:var(--t-sm);font-weight:700;text-transform:capitalize">${ins.crecimiento?.tendencia||''}</span></div>
+        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.5rem">${ins.crecimiento?.insight||''}</div>
+        <div style="font-size:var(--t-xs);margin-bottom:.75rem"><strong>Predicción:</strong> ${ins.crecimiento?.prediccion_mes_siguiente||''}</div>
+        <div class="ai-action">${ins.crecimiento?.accion||''}</div>`)}
+      ${_aiCard('💰','Revenue & MRR',`
+        <div style="font-size:var(--t-sm);margin-bottom:.5rem">${ins.revenue?.mrr_insight||''}</div>
+        <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.75rem"><strong>Upsell:</strong> ${ins.revenue?.oportunidad_upsell||''}</div>
+        <div class="ai-action">${ins.revenue?.accion||''}</div>`)}
+      ${_aiCard('🔄','Retención & Churn',`
+        <div style="font-size:var(--t-sm);margin-bottom:.5rem">${ins.retencion?.churn_analisis||''}</div>
+        <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.75rem">${ins.retencion?.alerta_past_due||''}</div>
+        <div class="ai-action">${ins.retencion?.accion||''}</div>`)}
+      ${_aiCard('🏪','Tiendas',`
+        <div style="font-size:var(--t-sm);margin-bottom:.5rem">${ins.tiendas?.top_performers||''}</div>
+        <div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.75rem"><strong>En riesgo:</strong> ${ins.tiendas?.tiendas_en_riesgo||''}</div>
+        <div class="ai-action">${ins.tiendas?.accion||''}</div>`)}
+      ${_aiCard('📦','Planes & Pricing',`
+        <div style="font-size:var(--t-sm);color:var(--muted);margin-bottom:.75rem">${ins.planes?.distribucion_insight||''}</div>
+        <div class="ai-action">${ins.planes?.accion||''}</div>`)}
+    </div>
+    <div style="font-size:var(--t-xs);color:var(--faint);text-align:center;padding:.5rem 1.5rem 1.25rem">Generado con IA · Análisis orientativo basado en datos históricos de la plataforma</div>`;
 }
 
 // ── MI PERFIL ──
