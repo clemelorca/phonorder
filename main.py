@@ -70,13 +70,12 @@ def _run_migrations():
         "ALTER TABLE subscriptions ADD COLUMN mp_preapproval_id VARCHAR(120)",
         "ALTER TABLE subscriptions ADD COLUMN mp_preapproval_url TEXT",
     ]
-    with engine.connect() as conn:
-        for sql in migrations:
-            try:
+    for sql in migrations:
+        try:
+            with engine.begin() as conn:  # transacción independiente por cada ALTER
                 conn.execute(sa.text(sql))
-                conn.commit()
-            except Exception:
-                pass  # Column already exists or not applicable
+        except Exception:
+            pass  # Columna ya existe, ignorar
 
 def _ensure_superadmin():
     import os
