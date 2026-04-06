@@ -2455,7 +2455,7 @@ function renderAI(ins){
     </div>
 
     <!-- Grid de insights -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem">
 
       ${_aiCardNew(SVG.ventas,'Ventas',[
         ['Tendencia',_aiTrend(ins.ventas?.tendencia)],
@@ -2539,7 +2539,7 @@ function renderSAAI(ins){
         </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;padding:1.25rem 1.5rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem;padding:1.25rem 1.5rem">
       ${_aiCardNew(SVG2.growth,'Crecimiento',[
         ['Tendencia',_aiTrend(ins.crecimiento?.tendencia)],
         ['Análisis',ins.crecimiento?.insight||'—'],
