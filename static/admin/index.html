@@ -979,7 +979,20 @@ function buildNav(){
         const saved=localStorage.getItem('ph_panel');
         const defaultPanel=cu.role==='staff'?'orders':'dashboard';
         showPanel(saved||defaultPanel);
-      } else{showPanel('stores');}
+      } else{
+        showPanel('stores');
+        const qs=new URLSearchParams(location.search);
+        const qPlan=qs.get('plan');
+        if(qs.get('welcome')==='1'&&['starter','negocio','cadena'].includes(qPlan)){
+          setTimeout(()=>{
+            const sp=document.getElementById('sp');
+            if(sp) sp.value=qPlan;
+            openM('ms');
+            toast(`Crea tu primera tienda para activar el plan ${qPlan}`,'ok');
+          },300);
+          history.replaceState({},'','/admin');
+        }
+      }
     });
   }
 }
