@@ -18,4 +18,5 @@ def get_menu(token:str,db=Depends(get_db)):
         if prods: result.append(MenuCategory(id=cat.id,name=cat.name,order=cat.order,products=[MenuProduct.model_validate(p) for p in prods]))
     if unc: result.append(MenuCategory(id=0,name="Otros",order=999,products=[MenuProduct.model_validate(p) for p in unc]))
     return MenuResponse(store_id=s.id,store_name=s.name,store_description=s.description,
-        store_logo=s.logo_b64,table_label=qr.table_label,categories=result)
+        store_logo=s.logo_b64,table_label=qr.table_label,categories=result,
+        primary_color=s.primary_color or "#01696f")

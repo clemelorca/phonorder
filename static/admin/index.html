@@ -440,12 +440,22 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
 
       <!-- ═══ PRODUCTOS ═══ -->
       <div class="panel" id="panel-products">
-        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-          <h2 style="font-size:var(--t-lg);font-weight:700;flex:1">Productos</h2>
-          <input id="prod-search" type="search" placeholder="Buscar producto…" style="width:200px;padding:.45rem .75rem;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--t-sm);background:var(--surface);color:var(--text)" oninput="filterProds()">
-          <button class="btn-sm primary" onclick="openM('mp')">+ Producto</button>
+        <div id="prod-store-gate" style="display:none;padding:2.5rem 1.5rem;text-align:center;background:var(--surface);border-radius:var(--r-xl);border:1px solid var(--border);box-shadow:var(--shadow-sm)">
+          <h2 style="font-size:var(--t-lg);font-weight:700;margin-bottom:.35rem">Selecciona una tienda</h2>
+          <p style="color:var(--muted);font-size:var(--t-sm);margin-bottom:1.25rem">Elige la tienda cuyos productos quieres gestionar.</p>
+          <select id="prod-store-picker" onchange="pickProdStore()" style="width:min(320px,100%);padding:.6rem .85rem;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--t-sm);background:var(--surface);color:var(--text)"></select>
         </div>
-        <div class="card"><div class="tw"><table><thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody id="prod-tbody"></tbody></table></div></div>
+        <div id="prod-content" style="display:none">
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+            <h2 style="font-size:var(--t-lg);font-weight:700;flex:1">Productos <span id="prod-store-label" style="font-size:var(--t-sm);font-weight:500;color:var(--muted)"></span></h2>
+            <button class="btn-sm ghost" onclick="resetProdStore()" title="Cambiar tienda">↺ Cambiar tienda</button>
+            <input id="prod-search" type="search" placeholder="Buscar producto…" style="width:200px;padding:.45rem .75rem;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--t-sm);background:var(--surface);color:var(--text)" oninput="filterProds()">
+            <button class="btn-sm ghost" onclick="openCatManager()">🏷️ Categorías</button>
+            <button class="btn-sm ghost" onclick="openBulkImport()">📥 Importar</button>
+            <button class="btn-sm primary" onclick="openM('mp')">+ Producto</button>
+          </div>
+          <div class="card"><div class="tw"><table><thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody id="prod-tbody"></tbody></table></div></div>
+        </div>
       </div>
 
       <!-- ═══ STAFF ═══ -->
@@ -734,9 +744,27 @@ select{background:var(--surface-off);border:1px solid var(--border);border-radiu
 
 <div class="mo" id="ms"><div class="modal"><div class="modal-head"><h2>Nueva Tienda</h2><button class="modal-close" onclick="closeM('ms')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body"><div class="form-row"><label>Nombre</label><input id="sn"></div><div class="form-row"><label>Descripción</label><textarea id="sd" rows="2"></textarea></div><div class="form-row"><label>Dirección</label><input id="sa"></div><div class="form-row"><label>Plan</label><select id="sp"><option value="starter">Starter</option><option value="negocio">Negocio</option><option value="cadena">Cadena</option></select></div></div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('ms')">Cancelar</button><button class="btn-sm primary" onclick="createStore()">Crear</button></div></div></div>
 
-<div class="mo" id="mp"><div class="modal"><div class="modal-head"><h2>Nuevo Producto</h2><button class="modal-close" onclick="closeM('mp')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body"><div class="form-2col"><div class="form-row"><label>Nombre</label><input id="pn"></div><div class="form-row"><label>Precio ($)</label><input id="ppr" type="number"></div></div><div class="form-2col"><div class="form-row"><label>Stock (-1 = ∞)</label><input id="psk" type="number" value="-1"></div><div class="form-row"><label>Categoría</label><select id="pcat"><option value="">Sin categoría</option></select></div></div><div class="form-row"><label>Descripción</label><textarea id="pde" rows="2"></textarea></div></div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mp')">Cancelar</button><button class="btn-sm primary" onclick="createProd()">Crear</button></div></div></div>
+<div class="mo" id="mp"><div class="modal"><div class="modal-head"><h2>Nuevo Producto</h2><button class="modal-close" onclick="closeM('mp')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body"><div class="form-2col"><div class="form-row"><label>Nombre</label><input id="pn"></div><div class="form-row"><label>Precio ($)</label><input id="ppr" type="number"></div></div><div class="form-2col"><div class="form-row"><label>Stock (-1 = ∞)</label><input id="psk" type="number" value="-1"></div><div class="form-row"><label>Categoría</label><div style="display:flex;gap:.4rem"><select id="pcat" style="flex:1"><option value="">Sin categoría</option></select><button type="button" class="btn-sm ghost" onclick="quickAddCat('pcat')" title="Crear categoría" style="padding:0 .75rem">+</button></div></div></div><div class="form-row"><label>Descripción</label><textarea id="pde" rows="2"></textarea></div></div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mp')">Cancelar</button><button class="btn-sm primary" onclick="createProd()">Crear</button></div></div></div>
 
-<div class="mo" id="mep"><div class="modal"><div class="modal-head"><h2>Editar Producto</h2><button class="modal-close" onclick="closeM('mep')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body"><div class="form-2col"><div class="form-row"><label>Nombre</label><input id="ep-name"></div><div class="form-row"><label>Precio ($)</label><input id="ep-price" type="number"></div></div><div class="form-2col"><div class="form-row"><label>Stock (-1 = ∞)</label><input id="ep-stock" type="number"></div><div class="form-row"><label>Categoría</label><select id="ep-cat"><option value="">Sin categoría</option></select></div></div><div class="form-row"><label>Descripción</label><textarea id="ep-desc" rows="2"></textarea></div></div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mep')">Cancelar</button><button class="btn-sm primary" onclick="saveProd()">Guardar</button></div></div></div>
+<div class="mo" id="mbulk"><div class="modal" style="width:min(780px,100%)"><div class="modal-head"><h2>Importar productos <span id="mbulk-store" style="font-size:var(--t-sm);font-weight:500;color:var(--muted)"></span></h2><button class="modal-close" onclick="closeM('mbulk')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body">
+  <div style="background:var(--surface-off);border-radius:var(--r-md);padding:.75rem 1rem;font-size:var(--t-xs);color:var(--muted);margin-bottom:1rem">
+    📋 Columnas esperadas (en este orden): <strong>name, price, stock, category, description</strong>. Separador coma (CSV) o tab (pegado desde Excel/Sheets). La primera fila puede ser encabezado. Si una categoría no existe, se crea automáticamente.
+  </div>
+  <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap">
+    <label style="flex:1;min-width:200px;display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;border:1px dashed var(--border);border-radius:var(--r-md);cursor:pointer;font-size:var(--t-sm)">
+      <span>📁 Subir CSV</span>
+      <input type="file" id="bulk-file" accept=".csv,text/csv" onchange="loadBulkFile()" style="display:none">
+    </label>
+    <button class="btn-sm ghost" onclick="fillBulkSample()">Ver ejemplo</button>
+    <button class="btn-sm ghost" onclick="document.getElementById('bulk-text').value='';previewBulk()">Limpiar</button>
+  </div>
+  <textarea id="bulk-text" rows="8" placeholder="Pega aquí filas de Excel/Sheets o escribe manualmente...&#10;name,price,stock,category,description&#10;Latte,3500,-1,Bebidas,Con leche&#10;Muffin,2200,20,Pastelería,Arándanos" style="width:100%;padding:.6rem .75rem;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--t-xs);background:var(--surface);color:var(--text);font-family:ui-monospace,Menlo,monospace;resize:vertical" oninput="previewBulk()"></textarea>
+  <div id="bulk-preview" style="margin-top:.75rem"></div>
+</div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mbulk')">Cancelar</button><button class="btn-sm primary" id="bulk-submit-btn" onclick="submitBulk()" disabled>Importar</button></div></div></div>
+
+<div class="mo" id="mcat"><div class="modal" style="width:min(460px,100%)"><div class="modal-head"><h2>Categorías <span id="mcat-store" style="font-size:var(--t-sm);font-weight:500;color:var(--muted)"></span></h2><button class="modal-close" onclick="closeM('mcat')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body"><div style="display:flex;gap:.5rem;margin-bottom:1rem"><input id="mcat-name" placeholder="Nueva categoría (ej: Bebidas)" style="flex:1;padding:.5rem .75rem;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--t-sm);background:var(--surface);color:var(--text)" onkeydown="if(event.key==='Enter')addCatFromMgr()"><button class="btn-sm primary" onclick="addCatFromMgr()">Agregar</button></div><div id="mcat-list" style="display:flex;flex-direction:column;gap:.4rem;max-height:320px;overflow-y:auto"></div></div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mcat')">Cerrar</button></div></div></div>
+
+<div class="mo" id="mep"><div class="modal"><div class="modal-head"><h2>Editar Producto</h2><button class="modal-close" onclick="closeM('mep')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body"><div class="form-2col"><div class="form-row"><label>Nombre</label><input id="ep-name"></div><div class="form-row"><label>Precio ($)</label><input id="ep-price" type="number"></div></div><div class="form-2col"><div class="form-row"><label>Stock (-1 = ∞)</label><input id="ep-stock" type="number"></div><div class="form-row"><label>Categoría</label><div style="display:flex;gap:.4rem"><select id="ep-cat" style="flex:1"><option value="">Sin categoría</option></select><button type="button" class="btn-sm ghost" onclick="quickAddCat('ep-cat')" title="Crear categoría" style="padding:0 .75rem">+</button></div></div></div><div class="form-row"><label>Descripción</label><textarea id="ep-desc" rows="2"></textarea></div></div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mep')">Cancelar</button><button class="btn-sm primary" onclick="saveProd()">Guardar</button></div></div></div>
 
 <div class="mo" id="mest"><div class="modal"><div class="modal-head"><h2>Editar Staff</h2><button class="modal-close" onclick="closeM('mest')">✕</button></div><div class="modal-body"><div class="form-row"><label>Nombre</label><input id="est-name"></div><div class="form-row"><label>Rol</label><select id="est-role"><option value="staff">Staff</option><option value="manager">Manager</option></select></div><div class="form-row"><label>Nueva contraseña <span style="color:var(--muted);font-weight:400">(dejar vacío para no cambiar)</span></label><input type="password" id="est-pw" placeholder="••••••••"></div></div><div class="modal-foot"><button class="btn-sm ghost" onclick="closeM('mest')">Cancelar</button><button class="btn-sm primary" onclick="saveStaff()">Guardar</button></div></div></div>
 
@@ -913,28 +941,28 @@ function buildNav(){
       {id:'profile',icon:ICO.profile,label:'Mi perfil'},
     ];
   } else if(cu.role==='staff'&&cu.staff_role==='manager'){
-    // Manager: pedidos, QR, staff, productos, cocina y perfil
+    // Manager: operación → catálogo → cuenta
     items=[
       {id:'orders',icon:ICO.orders,label:'Pedidos'},
-      {id:'products',icon:ICO.products,label:'Productos'},
-      {id:'staff',icon:ICO.staff,label:'Staff'},
-      {id:'qr',icon:ICO.qr,label:'QR Codes'},
       {id:'kitchen',icon:ICO.kitchen,label:'Cocina'},
+      {id:'products',icon:ICO.products,label:'Productos'},
+      {id:'qr',icon:ICO.qr,label:'QR Codes'},
+      {id:'staff',icon:ICO.staff,label:'Staff'},
       {id:'profile',icon:ICO.profile,label:'Mi perfil'},
     ];
   } else {
-    // Admin: todo
+    // Admin: operación → catálogo → estrategia → cuenta
     items=[
       {id:'dashboard',icon:ICO.grid,label:'Dashboard'},
       {id:'orders',icon:ICO.orders,label:'Pedidos'},
+      {id:'kitchen',icon:ICO.kitchen,label:'Cocina'},
       {id:'customers',icon:ICO.customers,label:'Clientes'},
       {id:'products',icon:ICO.products,label:'Productos'},
-      {id:'staff',icon:ICO.staff,label:'Staff'},
       {id:'qr',icon:ICO.qr,label:'QR Codes'},
-      {id:'kitchen',icon:ICO.kitchen,label:'Cocina'},
+      {id:'staff',icon:ICO.staff,label:'Staff'},
       {id:'stores',icon:ICO.stores,label:'Tiendas'},
-      {id:'payments',icon:ICO.card,label:'Pagos'},
       {id:'ai',icon:ICO.ai,label:'IA'},
+      {id:'payments',icon:ICO.card,label:'Pagos'},
       {id:'mysub',icon:ICO.box,label:'Suscripción'},
       {id:'profile',icon:ICO.profile,label:'Mi perfil'},
     ];
@@ -965,14 +993,14 @@ function showPanel(pid){
   document.getElementById('nav-'+pid)?.classList.add('active');
   const titles={dashboard:'Dashboard',orders:'Pedidos',customers:'Clientes',products:'Productos',staff:'Staff',qr:'Códigos QR',kitchen:'Cocina & Bar',stores:'Tiendas',sa:'Superadmin',subs:'Suscripciones',mysub:'Mi suscripción',profile:'Mi perfil',payments:'Métodos de pago',ai:'IA · Insights','ai-sa':'IA · Plataforma'};
   document.getElementById('page-title').textContent=titles[pid]||pid;
-  const showSel=['dashboard','orders','customers','products','staff'].includes(pid);
+  const showSel=['dashboard','orders','customers','staff'].includes(pid);
   document.getElementById('store-sel').style.display=showSel&&stores.length>1?'':'none';
   // Ocultar botones de acción para staff/manager
   _applyRoleUI();
   if(pid==='dashboard') loadDash();
   if(pid==='orders') loadOrders();
   if(pid==='customers') loadCustomers();
-  if(pid==='products') loadProds();
+  if(pid==='products') enterProductsPanel();
   if(pid==='staff') loadStaff();
   if(pid==='qr') loadQR();
   if(pid==='kitchen') loadKitchenPanel();
@@ -1261,13 +1289,204 @@ async function showOrder(oid){
 }
 
 // ── PRODUCTS ──
-let _allProds=[];let _prodCatMap={};let _editProdId=null;
+let _allProds=[];let _prodCatMap={};let _editProdId=null;let _prodStoreLocked=false;
+
+function enterProductsPanel(){
+  _prodStoreLocked=false;
+  const gate=document.getElementById('prod-store-gate');
+  const content=document.getElementById('prod-content');
+  const picker=document.getElementById('prod-store-picker');
+  if(!stores.length){
+    gate.style.display='';content.style.display='none';
+    picker.innerHTML='<option value="">No tienes tiendas</option>';
+    return;
+  }
+  if(stores.length===1){
+    currentSid=stores[0].id;
+    _prodStoreLocked=true;
+    showProductsContent();
+    return;
+  }
+  picker.innerHTML='<option value="">— Selecciona —</option>'+stores.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  picker.value='';
+  gate.style.display='';
+  content.style.display='none';
+}
+
+function pickProdStore(){
+  const v=parseInt(document.getElementById('prod-store-picker').value);
+  if(!v) return;
+  currentSid=v;
+  _prodStoreLocked=true;
+  const sel=document.getElementById('store-sel');
+  if(sel) sel.value=v;
+  showProductsContent();
+}
+
+function resetProdStore(){
+  enterProductsPanel();
+}
+
+function showProductsContent(){
+  document.getElementById('prod-store-gate').style.display='none';
+  document.getElementById('prod-content').style.display='';
+  const s=stores.find(x=>x.id===currentSid);
+  document.getElementById('prod-store-label').textContent=s?`· ${s.name}`:'';
+  loadProds();
+}
+
+// ── CATEGORÍAS (gestor + quick-add) ──
+let _cats=[];
+
+async function openCatManager(){
+  if(!currentSid){toast('Selecciona tienda','err');return;}
+  const s=stores.find(x=>x.id===currentSid);
+  document.getElementById('mcat-store').textContent=s?`· ${s.name}`:'';
+  document.getElementById('mcat-name').value='';
+  await reloadCats();
+  openM('mcat');
+}
+
+async function reloadCats(){
+  _cats=await api('GET',`/stores/${currentSid}/categories`)||[];
+  renderCatsMgr();
+  refreshCatSelects();
+}
+
+function renderCatsMgr(){
+  const el=document.getElementById('mcat-list');
+  if(!_cats.length){el.innerHTML='<p style="color:var(--muted);font-size:var(--t-sm);text-align:center;padding:1rem">Sin categorías aún</p>';return;}
+  el.innerHTML=_cats.map(c=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .75rem;background:var(--surface-off);border-radius:var(--r-md);font-size:var(--t-sm)"><span>${c.name}</span><button class="btn-sm danger" onclick="delCatFromMgr(${c.id})" style="padding:.25rem .6rem">Eliminar</button></div>`).join('');
+}
+
+function refreshCatSelects(){
+  _prodCatMap=Object.fromEntries(_cats.map(c=>[c.id,c.name]));
+  const opts='<option value="">Sin categoría</option>'+_cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const pcat=document.getElementById('pcat');
+  const epcat=document.getElementById('ep-cat');
+  if(pcat){const v=pcat.value;pcat.innerHTML=opts;pcat.value=v;}
+  if(epcat){const v=epcat.value;epcat.innerHTML=opts;epcat.value=v;}
+}
+
+async function addCatFromMgr(){
+  const input=document.getElementById('mcat-name');
+  const name=input.value.trim();
+  if(!name){toast('Nombre vacío','err');return;}
+  try{
+    await api('POST',`/stores/${currentSid}/categories`,{name});
+    input.value='';
+    toast('Categoría creada','ok');
+    await reloadCats();
+  }catch(e){toast(e.message,'err');}
+}
+
+async function delCatFromMgr(cid){
+  if(!confirm('¿Eliminar categoría? Los productos asociados quedarán sin categoría.')) return;
+  try{
+    await api('DELETE',`/stores/${currentSid}/categories/${cid}`);
+    toast('Eliminada','ok');
+    await reloadCats();
+  }catch(e){toast(e.message,'err');}
+}
+
+// ── BULK IMPORT ──
+let _bulkParsed=[];
+
+function openBulkImport(){
+  if(!currentSid){toast('Selecciona tienda','err');return;}
+  const s=stores.find(x=>x.id===currentSid);
+  document.getElementById('mbulk-store').textContent=s?`· ${s.name}`:'';
+  document.getElementById('bulk-text').value='';
+  document.getElementById('bulk-preview').innerHTML='';
+  document.getElementById('bulk-submit-btn').disabled=true;
+  _bulkParsed=[];
+  openM('mbulk');
+}
+
+function fillBulkSample(){
+  document.getElementById('bulk-text').value='name,price,stock,category,description\nLatte,3500,-1,Bebidas,Con leche caliente\nMuffin arándanos,2200,20,Pastelería,Horneado del día\nJugo naranja,2800,-1,Bebidas,Natural recién exprimido';
+  previewBulk();
+}
+
+function loadBulkFile(){
+  const f=document.getElementById('bulk-file').files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{document.getElementById('bulk-text').value=r.result;previewBulk();};
+  r.readAsText(f);
+}
+
+function parseBulk(text){
+  const rows=text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
+  if(!rows.length) return [];
+  const sep=rows[0].includes('\t')?'\t':',';
+  const first=rows[0].split(sep).map(c=>c.trim().toLowerCase());
+  const isHeader=['name','nombre','producto'].includes(first[0]);
+  const dataRows=isHeader?rows.slice(1):rows;
+  return dataRows.map((line,idx)=>{
+    const cols=line.split(sep).map(c=>c.trim().replace(/^"|"$/g,''));
+    const [name,price,stock,category,description]=[cols[0]||'',cols[1]||'',cols[2]||'',cols[3]||'',cols[4]||''];
+    const pr=parseFloat((price||'').replace(/[^\d.,-]/g,'').replace(',','.'));
+    const st=stock===''?-1:parseInt(stock);
+    return {
+      _row:idx+(isHeader?2:1),
+      name,
+      price:isNaN(pr)?null:pr,
+      stock:isNaN(st)?-1:st,
+      category_name:category||null,
+      description:description||null,
+      _valid:!!name&&!isNaN(pr)&&pr>=0,
+    };
+  });
+}
+
+function previewBulk(){
+  const text=document.getElementById('bulk-text').value;
+  _bulkParsed=parseBulk(text);
+  const el=document.getElementById('bulk-preview');
+  const btn=document.getElementById('bulk-submit-btn');
+  if(!_bulkParsed.length){el.innerHTML='';btn.disabled=true;return;}
+  const valid=_bulkParsed.filter(r=>r._valid).length;
+  const invalid=_bulkParsed.length-valid;
+  btn.disabled=valid===0;
+  btn.textContent=valid?`Importar ${valid}`:'Importar';
+  el.innerHTML=`<div style="font-size:var(--t-xs);color:var(--muted);margin-bottom:.4rem">${valid} válidos${invalid?` · ${invalid} con errores (se omitirán)`:''}</div>
+    <div class="tw" style="max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:var(--r-md)"><table style="font-size:var(--t-xs)"><thead><tr><th>#</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Categoría</th><th>Estado</th></tr></thead><tbody>${_bulkParsed.map(r=>`<tr style="${r._valid?'':'background:rgba(220,50,50,.08)'}"><td>${r._row}</td><td>${r.name||'<em style="color:var(--muted)">—</em>'}</td><td>${r.price!==null?r.price:'<em style="color:red">?</em>'}</td><td>${r.stock===-1?'∞':r.stock}</td><td>${r.category_name||'—'}</td><td>${r._valid?'✓':'✗'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+async function submitBulk(){
+  const items=_bulkParsed.filter(r=>r._valid).map(r=>({name:r.name,price:r.price,stock:r.stock,category_name:r.category_name,description:r.description}));
+  if(!items.length) return;
+  const btn=document.getElementById('bulk-submit-btn');
+  btn.disabled=true;btn.textContent='Importando...';
+  try{
+    const res=await api('POST',`/stores/${currentSid}/products/bulk`,{items});
+    toast(`${res.created} productos creados${res.categories_created?` · ${res.categories_created} categorías nuevas`:''}`,'ok');
+    closeM('mbulk');
+    await reloadCats();
+    loadProds();
+  }catch(e){toast(e.message,'err');btn.disabled=false;btn.textContent='Importar';}
+}
+
+async function quickAddCat(selectId){
+  if(!currentSid){toast('Selecciona tienda','err');return;}
+  const name=prompt('Nombre de la nueva categoría:');
+  if(!name||!name.trim()) return;
+  try{
+    const c=await api('POST',`/stores/${currentSid}/categories`,{name:name.trim()});
+    await reloadCats();
+    const sel=document.getElementById(selectId);
+    if(sel&&c&&c.id) sel.value=c.id;
+    toast('Categoría creada','ok');
+  }catch(e){toast(e.message,'err');}
+}
 
 async function loadProds(){
   if(!currentSid) return;
   const[pr,ca]=await Promise.all([api('GET',`/stores/${currentSid}/products`),api('GET',`/stores/${currentSid}/categories`)]);
-  _prodCatMap=Object.fromEntries((ca||[]).map(c=>[c.id,c.name]));
-  const catOpts='<option value="">Sin categoría</option>'+(ca||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  _cats=ca||[];
+  _prodCatMap=Object.fromEntries(_cats.map(c=>[c.id,c.name]));
+  const catOpts='<option value="">Sin categoría</option>'+_cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
   document.getElementById('pcat').innerHTML=catOpts;
   document.getElementById('ep-cat').innerHTML=catOpts;
   _allProds=pr||[];

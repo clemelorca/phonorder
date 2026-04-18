@@ -102,6 +102,14 @@ class ProductOut(BaseModel):
     description:Optional[str];price:float;stock:int;is_active:bool;image_b64:Optional[str]
     model_config={"from_attributes":True}
 
+class ProductBulkItem(BaseModel):
+    name:str;price:float;stock:int=-1
+    description:Optional[str]=None;category_name:Optional[str]=None
+class ProductBulkRequest(BaseModel):
+    items:List[ProductBulkItem]
+class ProductBulkResult(BaseModel):
+    created:int;categories_created:int;skipped:List[str]=[]
+
 class QRCreate(BaseModel):
     table_label:str;qr_type:QRType=QRType.table
 class QRSimple(BaseModel):
