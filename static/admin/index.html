@@ -2347,6 +2347,10 @@ async function loadMySub(){
   mysubEl.innerHTML=subs.map(s=>{
     const daysLeft=s.next_billing?Math.max(0,Math.floor((new Date(s.next_billing)-Date.now())/86400000)):null;
     const isTrial=s.status==='trial';
+    const trialExpired=isTrial&&daysLeft===0;
+    const needsReactivate=s.status==='cancelled'||s.status==='past_due'||trialExpired;
+    const primaryLabel=s.status==='cancelled'?'Reactivar suscripción':(s.status==='past_due'?'Regularizar pago':(trialExpired?'Contratar plan':'Cambiar plan'));
+    const primaryCls=needsReactivate?'primary':'ghost';
     return `<div class="card" style="padding:2rem;max-width:480px">
       <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
         <div style="flex:1">
@@ -2355,12 +2359,20 @@ async function loadMySub(){
         </div>
         <span style="font-size:var(--t-xs);font-weight:700;color:${statusColors[s.status]||'var(--muted)'};background:${statusColors[s.status]||'var(--muted)'}18;padding:.3rem .75rem;border-radius:var(--r-full)">${statusLabels[s.status]||s.status}</span>
       </div>
-      ${isTrial&&daysLeft!==null?`<div style="background:var(--primary-hl);border-radius:var(--r-lg);padding:.85rem 1rem;margin-bottom:1.5rem;font-size:var(--t-xs);color:var(--primary)">
+      ${trialExpired?`<div style="background:var(--danger-hl);border-radius:var(--r-lg);padding:.85rem 1rem;margin-bottom:1.5rem;font-size:var(--t-xs);color:var(--danger)">
+        Tu período de prueba <strong>finalizó</strong>. Contrata un plan para seguir operando.
+      </div>`:(isTrial&&daysLeft!==null?`<div style="background:var(--primary-hl);border-radius:var(--r-lg);padding:.85rem 1rem;margin-bottom:1.5rem;font-size:var(--t-xs);color:var(--primary)">
         Te quedan <strong>${daysLeft} día${daysLeft!==1?'s':''}</strong> de prueba gratuita.
+      </div>`:'')}
+      ${s.status==='cancelled'?`<div style="background:var(--danger-hl);border-radius:var(--r-lg);padding:.85rem 1rem;margin-bottom:1.5rem;font-size:var(--t-xs);color:var(--danger)">
+        Suscripción cancelada. Puedes reactivarla eligiendo un plan.
+      </div>`:''}
+      ${s.status==='past_due'?`<div style="background:var(--orange-hl,#fff4e0);border-radius:var(--r-lg);padding:.85rem 1rem;margin-bottom:1.5rem;font-size:var(--t-xs);color:var(--orange,#b26a00)">
+        Tu pago está pendiente. Regulariza para continuar.
       </div>`:''}
       <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-        ${s.status!=='cancelled'?`<button class="btn-sm ghost" onclick="openChangePlan(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}','${s.plan}')">Cambiar plan</button>`:''}
-        ${s.status!=='cancelled'?`<button class="btn-sm danger" onclick="cancelSub(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}')">Darse de baja</button>`:''}
+        <button class="btn-sm ${primaryCls}" onclick="openChangePlan(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}','${s.plan}')">${primaryLabel}</button>
+        ${s.status==='active'||(isTrial&&!trialExpired)?`<button class="btn-sm danger" onclick="cancelSub(${s.store_id},'${s.store_name.replace(/'/g,"\\'")}')">Darse de baja</button>`:''}
       </div>
     </div>`;
   }).join('');
