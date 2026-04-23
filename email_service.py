@@ -1,8 +1,10 @@
 import os
+import logging
 import resend
 
 resend.api_key = os.getenv("RESEND_API_KEY", "")
 FROM_EMAIL = "Skanorder <noreply@skanorder.com>"
+log = logging.getLogger("skanorder.email")
 
 def send_welcome_email(to: str, name: str, plan: str = "starter"):
     plan_names = {"starter": "Starter", "negocio": "Negocio", "cadena": "Cadena"}
@@ -25,8 +27,8 @@ def send_welcome_email(to: str, name: str, plan: str = "starter"):
             </div>
             """
         })
-    except Exception:
-        pass  # No bloquear el registro si falla el email
+    except Exception as e:
+        log.exception("send_welcome_email failed for %s: %s", to, e)
 
 def send_password_reset_email(to: str, name: str, reset_token: str):
     reset_url = f"https://skanorder.com/reset-password?token={reset_token}"
@@ -47,5 +49,5 @@ def send_password_reset_email(to: str, name: str, reset_token: str):
             </div>
             """
         })
-    except Exception:
-        pass
+    except Exception as e:
+        log.exception("send_password_reset_email failed for %s: %s", to, e)
