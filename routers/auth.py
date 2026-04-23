@@ -1,9 +1,9 @@
 from fastapi import APIRouter,Depends,HTTPException,Request
 from database import get_db,User,StoreStaff,StaffRole,UserRole,Subscription,SubStatus,Plan
-from auth import verify_password,create_access_token,create_refresh_token,decode_token,get_current_user,hash_password
-from schemas import LoginRequest,TokenResponse,RefreshRequest,UserOut,RegisterRequest
+from auth import verify_password,create_access_token,create_refresh_token,create_reset_token,decode_token,get_current_user,hash_password
+from schemas import LoginRequest,TokenResponse,RefreshRequest,UserOut,RegisterRequest,ForgotPasswordRequest,ResetPasswordRequest
 from main import limiter
-from email_service import send_welcome_email
+from email_service import send_welcome_email,send_password_reset_email
 from datetime import datetime,timedelta
 
 router=APIRouter(prefix="/auth",tags=["auth"])
@@ -51,6 +51,33 @@ def register(request:Request,data:RegisterRequest,db=Depends(get_db)):
     staff_role=_get_staff_role(u.id,db)
     return TokenResponse(access_token=create_access_token(u.id,u.role.value),
         refresh_token=create_refresh_token(u.id),user_id=u.id,role=u.role.value,name=u.name,staff_role=staff_role)
+
+@router.post("/forgot-password")
+@limiter.limit("5/minute")
+def forgot_password(request:Request,data:ForgotPasswordRequest,db=Depends(get_db)):
+    u=db.query(User).filter(User.email==data.email).first()
+    if u and u.is_active:
+        token=create_reset_token(u.id)
+        send_password_reset_email(u.email,u.name,token)
+    return {"ok":True}
+
+@router.post("/reset-password")
+@limiter.limit("10/minute")
+def reset_password(request:Request,data:ResetPasswordRequest,db=Depends(get_db)):
+    if len(data.password)<6:
+        raise HTTPException(400,"La contraseña debe tener al menos 6 caracteres")
+    try:
+        p=decode_token(data.token)
+    except HTTPException:
+        raise HTTPException(400,"Enlace inválido o expirado")
+    if p.get("type")!="reset":
+        raise HTTPException(400,"Enlace inválido o expirado")
+    u=db.query(User).filter(User.id==int(p["sub"])).first()
+    if not u or not u.is_active:
+        raise HTTPException(400,"Enlace inválido o expirado")
+    u.password_hash=hash_password(data.password)
+    db.commit()
+    return {"ok":True}
 
 @router.get("/me",response_model=UserOut)
 def me(cu=Depends(get_current_user)): return cu

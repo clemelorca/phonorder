@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/static/so-fav.png">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skanorder · Restablecer contraseña</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f2;--surface-off:#f1eee9;
+  --border:rgba(40,37,29,.1);--text:#28251d;--muted:#7a7974;
+  --primary:#01696f;--primary-h:#0c4e54;
+  --success:#437a22;--success-hl:#d4dfcc;
+  --danger:#c0392b;--danger-hl:#f8d7d3;
+  --r-md:.5rem;--r-xl:1rem;
+  --font-d:"Instrument Serif",Georgia,serif;
+  --font-b:"DM Sans","Helvetica Neue",sans-serif;
+  --t-xs:.8125rem;--t-sm:.9375rem;
+  --ease:180ms cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:var(--font-b);color:var(--text);background:var(--bg);min-height:100dvh;background-image:url('/static/bg2.png');background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.card{background:rgba(249,248,245,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:var(--r-xl);border:1px solid rgba(255,255,255,.4);box-shadow:0 8px 40px rgba(0,0,0,.28);padding:2.5rem;width:min(400px,100%);}
+.logo{display:flex;justify-content:center;margin-bottom:1.5rem;}
+.logo img{height:44px;max-width:200px;}
+h1{font-family:var(--font-d);font-size:1.75rem;text-align:center;margin-bottom:.4rem;font-weight:400;}
+.sub{text-align:center;color:var(--muted);font-size:var(--t-sm);margin-bottom:1.5rem;}
+.form-row{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.85rem;}
+.form-row label{font-size:var(--t-xs);color:var(--muted);font-weight:600;}
+.form-row input{width:100%;padding:.6rem .85rem;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface-off);font-size:var(--t-sm);transition:border-color var(--ease);}
+.form-row input:focus{outline:none;border-color:var(--primary);}
+.btn{width:100%;padding:.75rem;background:var(--primary);color:#fff;border-radius:var(--r-md);font-size:var(--t-sm);font-weight:600;transition:background var(--ease);margin-top:.5rem;}
+.btn:hover{background:var(--primary-h);}
+.btn:disabled{opacity:.6;cursor:not-allowed;}
+.msg{border-radius:var(--r-md);padding:.7rem .9rem;font-size:var(--t-xs);margin-bottom:1rem;display:none;}
+.msg.err{background:var(--danger-hl);color:var(--danger);}
+.msg.ok{background:var(--success-hl);color:var(--success);}
+.back{display:block;text-align:center;margin-top:1rem;font-size:var(--t-xs);color:var(--muted);}
+.back:hover{color:var(--text);}
+.hint{font-size:var(--t-xs);color:var(--muted);margin-top:-.3rem;margin-bottom:.6rem;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo"><img src="/static/skanorder.svg" alt="Skanorder"></div>
+  <h1>Nueva contraseña</h1>
+  <p class="sub">Elige una contraseña nueva para tu cuenta.</p>
+  <div class="msg err" id="err"></div>
+  <div class="msg ok" id="ok"></div>
+  <div id="form">
+    <div class="form-row"><label>Nueva contraseña</label><input type="password" id="pw1" placeholder="••••••••" onkeydown="if(event.key==='Enter')submit()"></div>
+    <div class="hint">Mínimo 6 caracteres.</div>
+    <div class="form-row"><label>Confirmar contraseña</label><input type="password" id="pw2" placeholder="••••••••" onkeydown="if(event.key==='Enter')submit()"></div>
+    <button class="btn" id="btn" onclick="submit()">Restablecer contraseña</button>
+  </div>
+  <a class="back" href="/admin">← Volver a iniciar sesión</a>
+</div>
+<script>
+const API=location.origin;
+const token=new URLSearchParams(location.search).get('token')||'';
+const err=document.getElementById('err'),ok=document.getElementById('ok');
+
+if(!token){
+  err.textContent='Enlace inválido. Solicita un nuevo email de recuperación.';
+  err.style.display='block';
+  document.getElementById('form').style.display='none';
+}
+
+function showErr(m){err.textContent=m;err.style.display='block';ok.style.display='none';}
+function showOk(m){ok.textContent=m;ok.style.display='block';err.style.display='none';}
+
+async function submit(){
+  const p1=document.getElementById('pw1').value,p2=document.getElementById('pw2').value;
+  if(p1.length<6){showErr('La contraseña debe tener al menos 6 caracteres.');return;}
+  if(p1!==p2){showErr('Las contraseñas no coinciden.');return;}
+  const btn=document.getElementById('btn');
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const r=await fetch(API+'/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,password:p1})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok){showErr(d.detail||'No se pudo restablecer la contraseña.');btn.disabled=false;btn.textContent='Restablecer contraseña';return;}
+    showOk('Contraseña actualizada. Redirigiendo al inicio de sesión...');
+    document.getElementById('form').style.display='none';
+    setTimeout(()=>location.href='/admin',1800);
+  }catch(e){
+    showErr('Error de conexión. Intenta de nuevo.');
+    btn.disabled=false;btn.textContent='Restablecer contraseña';
+  }
+}
+</script>
+</body>
+</html>

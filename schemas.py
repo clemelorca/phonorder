@@ -31,6 +31,10 @@ class TokenResponse(BaseModel):
     user_id:int;role:str;name:str;staff_role:Optional[str]=None
 class RefreshRequest(BaseModel):
     refresh_token:str
+class ForgotPasswordRequest(BaseModel):
+    email:EmailStr
+class ResetPasswordRequest(BaseModel):
+    token:str;password:str
 
 class UserCreate(BaseModel):
     name:str;email:EmailStr;password:str

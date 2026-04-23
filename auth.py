@@ -10,6 +10,7 @@ from security import SECRET_KEY
 ALGORITHM="HS256"
 ACCESS_MIN=60       # 1 hour (was 8h — reduced for security)
 REFRESH_DAYS=14     # 14 days (was 30)
+RESET_MIN=30        # password reset link expiration
 pwd=CryptContext(schemes=["bcrypt"],deprecated="auto",bcrypt__rounds=12)
 oauth2=OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -22,6 +23,7 @@ def _tok(data,exp):
     return jwt.encode(d,SECRET_KEY,algorithm=ALGORITHM)
 def create_access_token(uid,role): return _tok({"sub":str(uid),"role":role},timedelta(minutes=ACCESS_MIN))
 def create_refresh_token(uid): return _tok({"sub":str(uid),"type":"refresh"},timedelta(days=REFRESH_DAYS))
+def create_reset_token(uid): return _tok({"sub":str(uid),"type":"reset"},timedelta(minutes=RESET_MIN))
 def decode_token(token):
     try: return jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
     except JWTError: raise HTTPException(401,"Token inválido")
